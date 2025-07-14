@@ -1,0 +1,83 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: meet2jira_postgres
+    environment:
+      POSTGRES_DB: meet2jira
+      POSTGRES_USER: meet2jira_user
+      POSTGRES_PASSWORD: meet2jira_password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+#      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meet2jira_user -d meet2jira"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - meet2jira_network
+
+  # Redis (для кэширования, если нужно)
+  redis:
+    image: redis:7-alpine
+    container_name: meet2jira_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - meet2jira_network
+
+  # FastAPI Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: meet2jira_app
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=meet2jira
+      - DB_USER=meet2jira_user
+      - DB_PASSWORD=meet2jira_password
+      - SQLALCHEMY_DATABASE_URI=postgresql+asyncpg://meet2jira_user:meet2jira_password@postgres:5432/meet2jira
+      - SQLALCHEMY_ECHO=true
+      - PYTHONPATH=/app
+    volumes:
+      - .:/app
+#      - ./backend/static:/app/backend/static
+#      - uv_cache:/tmp/uv-cache
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - meet2jira_network
+    command: uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  uv_cache:
+    driver: local
+
+networks:
+  meet2jira_network:
+    driver: bridge

@@ -1,0 +1,74 @@
+from fastapi import APIRouter
+from fastapi.params import Depends
+
+from src.dependencies.auth import get_auth_service, get_auth_repository
+from src.repositories.auth import AuthRepository
+from src.schemas.auth.login import (
+    LoginRequestSchema,
+    LoginResponseSchema
+)
+from src.schemas.auth.user import UserCreateSchema, UserResponseSchema
+from src.services.auth_service import AuthService
+
+
+auth_router = APIRouter(
+    prefix="/auth",
+    tags=["Authentication"]
+)
+
+
+@auth_router.post("/login")
+async def login(
+        request: LoginRequestSchema,
+        auth_service: AuthService = Depends(get_auth_service)
+) -> LoginResponseSchema:
+    """Login endpoint for user authentication."""
+
+    try:
+        user = await auth_service.authenticate_user(
+            username=request.username,
+            password=request.password
+        )
+
+        if not user:
+            return {"message": "Invalid username or password"}
+
+        return LoginResponseSchema(
+            message="Login successful",
+            user_id=user.id,
+            username=user.username,
+            email=user.email
+        )
+    except Exception as e:
+        return {"message": f"Login failed: {str(e)}."}
+
+
+@auth_router.post("/register")
+async def register(
+    user_data: UserCreateSchema,
+    user_repository: AuthRepository = Depends(get_auth_repository),
+) -> UserResponseSchema:
+    """Register endpoint for new users."""
+    try:
+        if user_data.username:
+            existing_user = await user_repository.get_user_by_username(user_data.username)
+            if existing_user:
+                return {"message": "Username already exists"}
+
+        if user_data.email:
+            existing_user = await user_repository.get_user_by_email(user_data.email)
+            if existing_user:
+                return {"message": "Email already exists"}
+
+        new_user = await user_repository.create(obj_in=user_data)
+
+        return UserResponseSchema(
+            id=new_user.id,
+            username=new_user.username,
+            email=new_user.email,
+            full_name=new_user.full_name,
+            is_active=new_user.is_active
+        )
+
+    except Exception as e:
+        return {"message": f"Registration failed: {str(e)}."}
