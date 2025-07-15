@@ -167,18 +167,8 @@ class AuthService:
         if not user:
             raise ValueError("Неверный логин или пароль")
 
-        # Validate password
-        is_valid, message = self.validate_password(password)
-        if not is_valid:
-            raise ValueError(message)
-
         return {
-            "message": "Login successful",
-            "user_id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "remember_me": remember_me,
-            "captcha": captcha
+            "message": "Login successful"
         }
 
     def validate_password(self, password: str) -> tuple[bool, str]:
