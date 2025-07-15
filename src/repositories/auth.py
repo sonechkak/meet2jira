@@ -1,3 +1,5 @@
+from operator import or_
+from select import select
 from typing import Optional
 
 from src.database import AsyncSessionLocal
@@ -33,7 +35,10 @@ class AuthRepository(
     async def get_user_by_identifier(self, identifier: str) -> Optional[User]:
         """Get user by username or email."""
         query = select(User).where(
-            or_(User.username == identifier, User.email == identifier)
+            or_(
+                User.username == identifier.lower(),
+                User.email == identifier.lower()
+            )
         )
         result = await self.db.execute(query)
         return result.scalars().first()

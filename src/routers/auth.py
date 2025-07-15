@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import APIRouter
 from fastapi.params import Depends
 
@@ -19,19 +21,21 @@ auth_router = APIRouter(
 
 @auth_router.post("/login")
 async def login(
-        request: LoginRequestSchema,
-        auth_service: AuthService = Depends(get_auth_service)
-) -> LoginResponseSchema:
+    request: LoginRequestSchema,
+    auth_service: AuthService = Depends(get_auth_service)
+) -> LoginResponseSchema | dict:
     """Login endpoint for user authentication."""
 
     try:
-        user = await auth_service.authenticate_user(
-            username=request.username,
-            password=request.password
+        user = await auth_service.login(
+            identifier=request.identifier,
+            password=request.password,
+            remember_me=request.remember_me,
+            captcha=request.captcha
         )
 
         if not user:
-            return {"message": "Invalid username or password"}
+            return {"message": "Invalid username or password."}
 
         return LoginResponseSchema(
             message="Login successful",
@@ -47,7 +51,7 @@ async def login(
 async def register(
     user_data: UserCreateSchema,
     user_repository: AuthRepository = Depends(get_auth_repository),
-) -> UserResponseSchema:
+) -> UserResponseSchema | dict:
     """Register endpoint for new users."""
     try:
         if user_data.username:

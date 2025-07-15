@@ -2,9 +2,10 @@ from pydantic import BaseModel
 
 
 class LoginRequestSchema(BaseModel):
-    username: str
+    identifier: str
     password: str
-
+    remember_me: bool = False
+    captcha: str | None = None
 
 class LoginResponseSchema(BaseModel):
     message: str

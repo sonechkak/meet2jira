@@ -22,22 +22,22 @@ services:
     networks:
       - meet2jira_network
 
-  # Redis (для кэширования, если нужно)
-  redis:
-    image: redis:7-alpine
-    container_name: meet2jira_redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-    networks:
-      - meet2jira_network
+#  # Redis
+#  redis:
+#    image: redis:7-alpine
+#    container_name: meet2jira_redis
+#    ports:
+#      - "6379:6379"
+#    volumes:
+#      - redis_data:/data
+#    healthcheck:
+#      test: ["CMD", "redis-cli", "ping"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#    restart: unless-stopped
+#    networks:
+#      - meet2jira_network
 
   # FastAPI Application
   app:
@@ -48,12 +48,12 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DB_HOST=postgres
+      - DB_HOST=127.0.0.1
       - DB_PORT=5432
       - DB_NAME=meet2jira
       - DB_USER=meet2jira_user
       - DB_PASSWORD=meet2jira_password
-      - SQLALCHEMY_DATABASE_URI=postgresql+asyncpg://meet2jira_user:meet2jira_password@postgres:5432/meet2jira
+      - SQLALCHEMY_DATABASE_URI=postgresql+asyncpg2://meet2jira_user:meet2jira_password@postgres:5432/meet2jira
       - SQLALCHEMY_ECHO=true
       - PYTHONPATH=/app
     volumes:
@@ -63,8 +63,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
+#      redis:
+#        condition: service_healthy
     restart: unless-stopped
     networks:
       - meet2jira_network
@@ -73,8 +73,8 @@ services:
 volumes:
   postgres_data:
     driver: local
-  redis_data:
-    driver: local
+#  redis_data:
+#    driver: local
   uv_cache:
     driver: local
 

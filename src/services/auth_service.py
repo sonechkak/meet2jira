@@ -122,7 +122,8 @@ class AuthService:
             return None
 
     async def authenticate_user(
-            self, session: AsyncSessionLocal, identifier: str
+            self,
+            identifier: str
     ) -> Optional[User]:
         """Authenticate user by identifier."""
         try:
@@ -131,23 +132,54 @@ class AuthService:
             # Authenticate by username or email
             if identifier:
                 # Try username first
-                user = await self.get_user_by_username(session, identifier)
+                user = await self.auth_repository.get_user_by_username(identifier)
                 if not user:
                     # Try email
-                    user = await self.get_user_by_email(session, identifier)
+                    user = await self.auth_repository.get_user_by_email(identifier)
 
-            if user and user.is_active:
-                # Update last login
-                user.updated_at = datetime.utcnow()
-                await session.commit()
-                await session.refresh(user)
-                return user
+            if not user:
+                logger.warning(f"User not found: {identifier}")
+                return None
 
-            return None
+            # Check if user is active
+            if not user.is_active:
+                logger.error(f"User is inactive: {identifier}")
+                return None
+            logger.info(f"User authenticated: {user.username or user.id}")
+            return user
 
         except Exception as e:
             logger.error(f"Error authenticating user: {e!s}")
             return None
+
+    async def login(
+            self,
+            identifier: str,
+            password: str,
+            remember_me: bool,
+            captcha: Optional[str] = None
+    ) -> dict:
+        """Login the user with provided credentials."""
+        if not identifier or not password:
+            raise ValueError("Логин и пароль обязательны для входа")
+
+        user = await self.auth_repository.get_user_by_username(identifier)
+        if not user:
+            raise ValueError("Неверный логин или пароль")
+
+        # Validate password
+        is_valid, message = self.validate_password(password)
+        if not is_valid:
+            raise ValueError(message)
+
+        return {
+            "message": "Login successful",
+            "user_id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "remember_me": remember_me,
+            "captcha": captcha
+        }
 
     def validate_password(self, password: str) -> tuple[bool, str]:
         """Validate the password according to specified rules."""
@@ -165,22 +197,6 @@ class AuthService:
 
         return True, "Пароль валиден"
 
-    def login(self, username: str, password: str) -> dict:
-        """Login the user with provided credentials."""
-        if not username or not password:
-            raise ValueError("Логин и пароль обязательны")
-
-        user = self.auth_repository.get_user_by_credentials(username, password)
-        if not user:
-            raise ValueError("Неверный логин или пароль")
-
-        return {
-            "message": "Login successful",
-            "user_id": user["id"],
-            "username": user["username"],
-            "email": user.get("email"),
-            "full_name": user.get("full_name"),
-        }
 
 # Global user service instance
 user_service = AuthService(auth_repository=AuthRepository)
