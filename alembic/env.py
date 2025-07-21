@@ -1,13 +1,12 @@
 import os
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool, create_engine
+from sqlalchemy import engine_from_config, create_engine
+from sqlalchemy import pool
 
 from alembic import context
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
+from src.database import Base
 config = context.config
 
 # Interpret the config file for Python logging.
@@ -22,12 +21,9 @@ from src.models.meeting import Meeting
 
 target_metadata = Base.metadata
 
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
+
 def get_url():
-    url = os.getenv("SQLALCHEMY_DATABASE_URI")
+    url = os.getenv("SQLALCHEMY_DATABASE_URI", "postgresql+asyncpg://meet2jira_user:meet2jira_password@127.0.0.1:5432/meet2jira")
     if url and "+asyncpg" in url:
         url = url.replace("+asyncpg", "+psycopg2")
     return url

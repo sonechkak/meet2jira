@@ -2,11 +2,11 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import AsyncGenerator
 
-from sqlalchemy import MetaData, Column, DateTime, create_engine
+from sqlalchemy import MetaData, Column, DateTime
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
-from src.settings.config import settings
+from sqlalchemy.orm import DeclarativeBase
 
+from src.settings.config import settings
 
 # Create metadata with naming convention for better constraint names
 metadata = MetaData(

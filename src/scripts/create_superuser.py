@@ -2,6 +2,8 @@ import asyncio
 import sys
 from pathlib import Path
 
+import bcrypt
+
 from src.database import AsyncSessionLocal
 from src.models.user import User
 
@@ -9,11 +11,6 @@ from src.models.user import User
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 print(f"Project root added to sys.path: {project_root}")
-
-from src.settings.config import settings
-from src.database import get_db_session
-from sqlalchemy import select
-import bcrypt
 
 
 async def create_superuser():
@@ -30,7 +27,7 @@ async def create_superuser():
     print(f"Creating user: {username} / {email}")
 
     # Хешируем пароль
-    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    hash_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
     async with AsyncSessionLocal() as session:
         try:
@@ -39,7 +36,7 @@ async def create_superuser():
                 username=username,
                 email=email,
                 full_name=full_name,
-                hashed_password=hashed_password,
+                hash_password=hash_password,
                 is_superuser=True,
                 is_active=True,
                 is_verified=True,

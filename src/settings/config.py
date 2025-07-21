@@ -1,10 +1,9 @@
 import os
-from typing import Optional, List
+from typing import Optional
 
 from dotenv import load_dotenv
-from pydantic import Field, ConfigDict
+from pydantic import Field
 from pydantic_settings import BaseSettings
-
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 IS_DOCKER = os.path.exists("/.dockerenv") or os.getenv("IS_DOCKER", "false").lower() == "true"
@@ -31,7 +30,6 @@ class Settings(BaseSettings):
     )
     debug: bool = Field(default=True, description="Debug mode")
     secret_key: str = Field("super-key", description="Secret key for JWT tokens")
-    admin_prefix: str = Field("/admin", description="Admin panel prefix")
 
     # Database
     SQLALCHEMY_DATABASE_URI: str = Field(
@@ -62,8 +60,6 @@ class Settings(BaseSettings):
     # Admin Fastadmin
     ADMIN_PREFIX: str = "/admin"
     ADMIN_SITE_NAME: str = "FastAdmin"
-    ADMIN_SITE_SIGN_IN_LOGO: str = "/admin/static/images/sign-in-logo.svg"
-    ADMIN_SITE_HEADER_LOGO: str = "/admin/static/images/header-logo.svg"
     ADMIN_SITE_FAVICON: str = "/admin/static/images/favicon.png"
     ADMIN_PRIMARY_COLOR: str = "#009485"
     ADMIN_SESSION_ID_KEY: str = "admin_session_id"
@@ -72,7 +68,7 @@ class Settings(BaseSettings):
     ADMIN_DATETIME_FORMAT: str = "YYYY-MM-DD HH:mm"
     ADMIN_TIME_FORMAT: str = "HH:mm:ss"
     ADMIN_USER_MODEL: str = "src.models.user.User"
-    ADMIN_USER_MODEL_USERNAME_FIELD: str = "ADMIN_USER_MODEL_USERNAME_FIELD"
+    ADMIN_USER_MODEL_USERNAME_FIELD: str = "username"
     ADMIN_SECRET_KEY: str = "ADMIN_SECRET_KEY"
     ADMIN_DISABLE_CROP_IMAGE: bool = False
 

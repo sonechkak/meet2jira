@@ -1,5 +1,3 @@
-from typing import Optional
-
 from fastapi import APIRouter
 from fastapi.params import Depends
 
@@ -11,7 +9,6 @@ from src.schemas.auth.login import (
 )
 from src.schemas.auth.user import UserCreateSchema, UserResponseSchema
 from src.services.auth_service import AuthService
-
 
 auth_router = APIRouter(
     prefix="/auth",

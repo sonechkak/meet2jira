@@ -1,5 +1,3 @@
-from typing import Any
-
 from sqlalchemy import Integer, String, Boolean, Text
 from sqlalchemy.orm import mapped_column, Mapped
 
@@ -13,7 +11,7 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(length=255), nullable=False)
     email: Mapped[str] = mapped_column(String(length=255), unique=True, nullable=False)
     full_name: Mapped[str | None] = mapped_column(String(length=255), nullable=True)
-    hashed_password: Mapped[str] = mapped_column(String(length=255), nullable=False)
+    hash_password: Mapped[str] = mapped_column(String(length=255), nullable=False)
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_staff: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

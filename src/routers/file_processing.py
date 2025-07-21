@@ -1,14 +1,15 @@
 from fastapi import APIRouter
-from fastapi.applications import AppType
+
+from src.schemas.auth.user import UserResponseSchema
 
 processing_router = APIRouter(
-    prefix="/processing",
+    prefix="/file",
     tags=["File Processing"],
     responses={404: {"description": "Not found"}},
 )
 
 
-@processing_router.get("")
+@processing_router.get("/process", response_model=UserResponseSchema)
 async def process_file():
     """
     Endpoint to process a file.
@@ -16,14 +17,13 @@ async def process_file():
     """
     return {"message": "File processing endpoint is under construction."}
 
-
-@processing_router.get("/status")
-async def get_processing_status():
+@processing_router.post("/reject", response_model=UserResponseSchema)
+async def reject_file():
     """
-    Endpoint to get the status of file processing.
-    This is a placeholder function that can be extended to return the status of file processing tasks.
+    Endpoint to reject a file.
+    This is a placeholder function that can be extended to handle file rejection logic.
     """
-    return {"status": "File processing is currently not implemented."}
+    return {"message": "File rejection endpoint is under construction."}
 
 
 @processing_router.post("/upload")
@@ -44,16 +44,6 @@ async def delete_file(file_id: str):
     """
     # Here you would typically delete the file from the server or database
     return {"message": f"File with ID {file_id} deleted successfully."}
-
-
-@processing_router.put("/update")
-async def update_file(file_id: str, file: bytes):
-    """
-    Endpoint to update a file.
-    This is a placeholder function that can be extended to handle file updates.
-    """
-    # Here you would typically update the file on the server or database
-    return {"message": f"File with ID {file_id} updated successfully.", "file_size": len(file)}
 
 
 @processing_router.get("/download")

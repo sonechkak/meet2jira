@@ -1,7 +1,7 @@
 from abc import ABC
-from pydantic import BaseModel
 from typing import Optional, TypeVar, Type, Generic, List, Any, Dict, Union
 
+from pydantic import BaseModel
 from sqlalchemy import select, update, delete, func
 from sqlalchemy.orm import selectinload
 
@@ -9,7 +9,6 @@ from src.database import (
     Base,
     AsyncSessionLocal
 )
-
 
 # Type variables for generic repository
 ModelType = TypeVar("ModelType", bound=Base)

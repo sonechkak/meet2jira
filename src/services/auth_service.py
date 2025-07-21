@@ -1,10 +1,8 @@
 import logging
 import re
-import logging
 from datetime import datetime
-from typing import Optional
-
 from select import select
+from typing import Optional
 
 import bcrypt
 
@@ -175,7 +173,7 @@ class AuthService:
         if not user:
             raise ValueError("Неверный логин или пароль.")
 
-        if not bcrypt.checkpw(password.encode(), user.hashed_password.encode()):
+        if not bcrypt.checkpw(password.encode(), user.hash_password.encode()):
             raise ValueError("Неверный логин или пароль")
 
         return user
