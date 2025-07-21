@@ -31,7 +31,7 @@ class UserAdmin(SqlAlchemyModelAdmin):
         sessionmaker = self.get_sessionmaker()
         print(f"📊 Using sessionmaker: {sessionmaker}")
 
-        async with sessionmaker() as session:
+        async with sessionmaker()  as session:
             try:
                 print(f"💾 Session created: {session}")
 

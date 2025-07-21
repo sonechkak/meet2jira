@@ -6,6 +6,8 @@ from typing import Optional
 
 from select import select
 
+import bcrypt
+
 from src.database import AsyncSessionLocal
 from src.models.user import User
 from src.repositories.auth import AuthRepository
@@ -158,26 +160,33 @@ class AuthService:
             password: str,
             remember_me: bool,
             captcha: Optional[str] = None
-    ) -> dict:
+    ) -> Optional[User]:
         """Login the user with provided credentials."""
         if not identifier or not password:
             raise ValueError("Логин и пароль обязательны для входа")
 
+        valid, msg = self.validate_password(password)
+        if not valid:
+            raise ValueError(msg)
+
         user = await self.auth_repository.get_user_by_username(identifier)
         if not user:
+            user = await self.auth_repository.get_user_by_email(identifier)
+        if not user:
+            raise ValueError("Неверный логин или пароль.")
+
+        if not bcrypt.checkpw(password.encode(), user.hashed_password.encode()):
             raise ValueError("Неверный логин или пароль")
 
-        return {
-            "message": "Login successful"
-        }
+        return user
 
     def validate_password(self, password: str) -> tuple[bool, str]:
         """Validate the password according to specified rules."""
         if len(password) < 8:
             return False, "Пароль должен содержать минимум 8 символов"
 
-        if not re.search(r'[A-Z]', password):
-            return False, "Пароль должен содержать заглавные буквы"
+        # if not re.search(r'[A-Z]', password):
+        #     return False, "Пароль должен содержать заглавные буквы"
 
         if not re.search(r'[a-z]', password):
             return False, "Пароль должен содержать строчные буквы"

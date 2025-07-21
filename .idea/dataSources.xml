@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="meet2jira@127.0.0.1" uuid="4ebc7915-6d74-4fc2-b990-6609e29ca75d">
+    <data-source source="LOCAL" name="meet2jira@127.0.0.1" uuid="c04e62c9-da29-4f87-adc9-dbca9d30f522">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>

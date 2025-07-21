@@ -23,7 +23,7 @@ auth_router = APIRouter(
 async def login(
     request: LoginRequestSchema,
     auth_service: AuthService = Depends(get_auth_service)
-) -> LoginResponseSchema | dict:
+) -> LoginResponseSchema:
     """Login endpoint for user authentication."""
 
     try:
@@ -38,11 +38,14 @@ async def login(
             return {"message": "Invalid username or password."}
 
         return LoginResponseSchema(
-            message="Login successful",
-            user_id=user.id,
+            status="success",
+            id=user.id,
             username=user.username,
-            email=user.email
+            email=user.email,
+            full_name=user.full_name,
+            is_active=user.is_active
         )
+
     except Exception as e:
         return {"message": f"Login failed: {str(e)}."}
 
