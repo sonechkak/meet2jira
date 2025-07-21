@@ -16,9 +16,6 @@ class Meeting(Base):
     duration_minutes = Column(Integer, default=60)
     participants = Column(Text, nullable=True)
     status = Column(String(20), default="scheduled")
-    jira_ticket_id = Column(String(50), nullable=True)
-    created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     def __repr__(self):
         return f"<Meeting(id={self.id}, title='{self.title}', status='{self.status}')>"

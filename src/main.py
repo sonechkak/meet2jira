@@ -120,10 +120,8 @@ from src.routers.auth import auth_router
 from src.routers.file_processing import processing_router
 from src.routers.utils import utils_router
 
-
 # Mount admin app
 from fastadmin import fastapi_app as admin_app
-
 
 # Mount the admin app
 app.mount(settings.ADMIN_PREFIX, admin_app)
