@@ -1,6 +1,11 @@
-from fastapi import APIRouter
+import logging
 
+from fastapi import APIRouter, HTTPException, UploadFile, File
+from starlette import status
+
+from src.pipeline.pipeline import process_document
 from src.schemas.auth.user import UserResponseSchema
+
 
 processing_router = APIRouter(
     prefix="/file",
@@ -9,20 +14,47 @@ processing_router = APIRouter(
 )
 
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
 @processing_router.get("/process", response_model=UserResponseSchema)
-async def process_file():
-    """
-    Endpoint to process a file.
-    This is a placeholder function that can be extended to handle file processing logic.
-    """
-    return {"message": "File processing endpoint is under construction."}
+async def process_file(file: UploadFile = File(...)):
+    """Endpoint to process a file."""
+    try:
+        pipeline = await process_document(file)
+
+        if "error" in pipeline:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=pipeline["error"]
+            )
+
+        summary = pipeline.get("summary", "")
+        if not summary:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Не удалось создать резюме для данного документа."
+            )
+
+        return {
+            "success": True,
+            "model": pipeline.get("model", "llama3.2"),
+            "document_type": pipeline.get("document_type", "unknown"),
+            "document_name": file.filename,
+            "summary": summary,
+        }
+
+    except Exception as e:
+        return HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
 
 @processing_router.post("/reject", response_model=UserResponseSchema)
 async def reject_file():
-    """
-    Endpoint to reject a file.
-    This is a placeholder function that can be extended to handle file rejection logic.
-    """
+    """Endpoint to reject a file."""
     return {"message": "File rejection endpoint is under construction."}
 
 

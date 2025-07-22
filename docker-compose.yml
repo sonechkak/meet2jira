@@ -53,7 +53,7 @@ services:
       - DB_NAME=meet2jira
       - DB_USER=meet2jira_user
       - DB_PASSWORD=meet2jira_password
-      - SQLALCHEMY_DATABASE_URI=postgresql+asyncpg2://meet2jira_user:meet2jira_password@postgres:5432/meet2jira
+      - SQLALCHEMY_DATABASE_URI=postgresql+asyncpg://meet2jira_user:meet2jira_password@postgres:5432/meet2jira
       - SQLALCHEMY_ECHO=true
       - PYTHONPATH=/app
     volumes:
