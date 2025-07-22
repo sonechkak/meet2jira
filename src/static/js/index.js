@@ -208,55 +208,196 @@ function copySummary(elementId) {
 }
 
 // Принятие результата
-function acceptResult(resultId) {
+async function acceptResult(resultId) {
     const resultCard = document.getElementById(resultId);
     const statusIndicator = document.getElementById(`status-${resultId}`);
     const acceptBtn = resultCard.querySelector('.accept-btn');
     const rejectBtn = resultCard.querySelector('.reject-btn');
 
-    // Визуальное обновление
-    resultCard.classList.add('accepted');
-    statusIndicator.innerHTML = '<div class="status-accepted">✅ Принято</div>';
-    statusIndicator.style.display = 'block';
+    // Получаем текст задач
+    const summaryElement = resultCard.querySelector('.summary-content');
+    const tasksText = summaryElement.textContent || summaryElement.innerText;
 
-    // Деактивируем кнопки
+    // Показываем индикатор загрузки
+    acceptBtn.innerHTML = '⏳ Принимаем...';
     acceptBtn.disabled = true;
     rejectBtn.disabled = true;
-    acceptBtn.style.opacity = '0.5';
-    rejectBtn.style.opacity = '0.5';
 
-    showMessage('Результат принят!', 'success');
+    try {
+        // Сначала вызываем /file/accept
+        const acceptResponse = await fetch('/file/accept', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                result_id: resultId,
+                tasks_text: tasksText
+            })
+        });
 
-    // Здесь можно добавить отправку на сервер
-    sendResultStatus(resultId, 'accepted');
+        if (!acceptResponse.ok) {
+            const acceptError = await acceptResponse.json();
+            throw new Error(acceptError.detail || 'Ошибка при принятии результата');
+        }
+
+        acceptBtn.innerHTML = '⏳ Создаем задачи в Jira...';
+
+        // Затем создаем задачи в Jira
+        const jiraResponse = await fetch('/file/accept', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                result_id: resultId,
+                tasks_text: tasksText,
+                project_key: 'DEV',  // Можно сделать настраиваемым
+                epic_key: null
+            })
+        });
+
+        const jiraResult = await jiraResponse.json();
+
+        if (jiraResponse.ok && jiraResult.success) {
+            // Визуальное обновление при успехе
+            resultCard.classList.add('accepted');
+
+            let statusHTML = '<div class="status-accepted">✅ Принято и задачи созданы в Jira!</div>';
+
+            // Добавляем ссылки на созданные задачи
+            if (jiraResult.jira_result.created_tasks && jiraResult.jira_result.created_tasks.length > 0) {
+                statusHTML += '<div class="jira-tasks-links"><strong>Созданные задачи:</strong><br>';
+                jiraResult.jira_result.created_tasks.forEach(task => {
+                    statusHTML += `<a href="${task.url}" target="_blank" class="jira-task-link">${task.key}: ${task.title}</a><br>`;
+                });
+                statusHTML += '</div>';
+            }
+
+            // Показываем предупреждения если есть
+            if (jiraResult.jira_result.errors && jiraResult.jira_result.errors.length > 0) {
+                statusHTML += '<div class="jira-warnings"><strong>Предупреждения:</strong><br>';
+                jiraResult.jira_result.errors.forEach(error => {
+                    statusHTML += `<small class="warning-text">${error}</small><br>`;
+                });
+                statusHTML += '</div>';
+            }
+
+            statusIndicator.innerHTML = statusHTML;
+            statusIndicator.style.display = 'block';
+
+            acceptBtn.innerHTML = '✅ Задачи созданы';
+            acceptBtn.style.opacity = '0.5';
+            rejectBtn.style.opacity = '0.5';
+
+            showMessage('Результат принят и задачи созданы в Jira!', 'success');
+
+        } else {
+            throw new Error(jiraResult.detail?.message || jiraResult.detail || 'Ошибка создания задач в Jira');
+        }
+
+    } catch (error) {
+        // Обработка ошибок
+        resultCard.classList.add('error');
+        statusIndicator.innerHTML = `<div class="status-error">❌ Ошибка: ${error.message}</div>`;
+        statusIndicator.style.display = 'block';
+
+        // Возвращаем кнопки в рабочее состояние
+        acceptBtn.innerHTML = '✅ Accept';
+        acceptBtn.disabled = false;
+        rejectBtn.disabled = false;
+
+        showMessage(`Ошибка: ${error.message}`, 'error');
+        console.error('Accept error:', error);
+    }
 }
 
 // Отклонение результата
-function rejectResult(resultId) {
+async function rejectResult(resultId) {
     const resultCard = document.getElementById(resultId);
     const statusIndicator = document.getElementById(`status-${resultId}`);
     const acceptBtn = resultCard.querySelector('.accept-btn');
     const rejectBtn = resultCard.querySelector('.reject-btn');
 
-    // Визуальное обновление
-    resultCard.classList.add('rejected');
-    statusIndicator.innerHTML = '<div class="status-rejected">❌ Отклонено</div>';
-    statusIndicator.style.display = 'block';
+    // Получаем текст задач
+    const summaryElement = resultCard.querySelector('.summary-content');
+    const tasksText = summaryElement.textContent || summaryElement.innerText;
 
-    // Деактивируем кнопки
-    acceptBtn.disabled = true;
+    // Показываем индикатор загрузки
+    rejectBtn.innerHTML = '⏳ Отклоняем...';
     rejectBtn.disabled = true;
-    acceptBtn.style.opacity = '0.5';
-    rejectBtn.style.opacity = '0.5';
+    acceptBtn.disabled = true;
 
-    showMessage('Результат отклонен', 'error');
+    try {
+        // Вызываем /file/reject
+        const response = await fetch('/file/reject', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                result_id: resultId,
+                tasks_text: tasksText,
+                reason: 'Результат отклонен пользователем'
+            })
+        });
 
-    sendResultStatus(resultId, 'rejected');
+        if (response.ok) {
+            const result = await response.json();
+
+            // Визуальное обновление
+            resultCard.classList.add('rejected');
+            statusIndicator.innerHTML = '<div class="status-rejected">❌ Отклонено</div>';
+            statusIndicator.style.display = 'block';
+
+            rejectBtn.innerHTML = '❌ Отклонено';
+            rejectBtn.style.opacity = '0.5';
+            acceptBtn.style.opacity = '0.5';
+
+            showMessage('Результат отклонен', 'success');
+
+        } else {
+            const error = await response.json();
+            throw new Error(error.detail || 'Ошибка при отклонении результата');
+        }
+
+    } catch (error) {
+        // Обработка ошибок
+        statusIndicator.innerHTML = `<div class="status-error">❌ Ошибка отклонения: ${error.message}</div>`;
+        statusIndicator.style.display = 'block';
+
+        // Возвращаем кнопки в рабочее состояние
+        rejectBtn.innerHTML = '❌ Reject';
+        rejectBtn.disabled = false;
+        acceptBtn.disabled = false;
+
+        showMessage(`Ошибка отклонения: ${error.message}`, 'error');
+        console.error('Reject error:', error);
+    }
 }
 
 // Отправка статуса на сервер (опционально)
 async function sendResultStatus(resultId, status) {
     try {
+        // Раскомментировать и адаптировать под ваш API
+        /*
+        const response = await fetch('/api/result-status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                result_id: resultId,
+                status: status,
+                timestamp: new Date().toISOString()
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Ошибка отправки статуса');
+        }
+        */
+
         console.log(`Статус результата ${resultId}: ${status}`);
     } catch (error) {
         console.error('Ошибка отправки статуса:', error);

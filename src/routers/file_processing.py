@@ -1,12 +1,14 @@
 import logging
+import os
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from starlette import status
 
 from src.database import AsyncSessionLocal, get_db_session
 from src.pipeline.pipeline import process_document
-from src.schemas.auth.user import UserResponseSchema
-
+from src.schemas.jira.jira_schemas import JiraTaskRequest
+from src.schemas.jira.request_schemas import AcceptResultRequest
+from src.services.jira_service import JiraService, get_jira_service
 
 processing_router = APIRouter(
     prefix="/file",
@@ -52,57 +54,46 @@ async def process_file(file: UploadFile = File(...), db: AsyncSessionLocal = Dep
         )
 
 
-@processing_router.post("/reject", response_model=UserResponseSchema)
+@processing_router.post("/reject")
 async def reject_file():
     """Endpoint to reject a file."""
     return {"message": "File rejection endpoint is under construction."}
 
 
-@processing_router.post("/upload")
-async def upload_file(file: bytes):
-    """
-    Endpoint to upload a file.
-    This is a placeholder function that can be extended to handle file uploads.
-    """
-    # Here you would typically save the file to a server or process it
-    return {"message": "File uploaded successfully.", "file_size": len(file)}
+@processing_router.post("/accept")
+async def accept_file(
+    request: AcceptResultRequest,
+    jira_service: JiraService = Depends(get_jira_service)
+):
+    """Cоздание задач в Jira."""
+    try:
+        jira_request = JiraTaskRequest(
+            tasks_text=request.tasks_text,
+            project_key=request.project_key,
+            epic_key=request.epic_key
+        )
 
+        jira_result = await jira_service.process_tasks_to_jira(jira_request)
+        logger.info(f"Jira result: {jira_result}")
 
-@processing_router.delete("/delete")
-async def delete_file(file_id: str):
-    """
-    Endpoint to delete a file.
-    This is a placeholder function that can be extended to handle file deletion.
-    """
-    # Here you would typically delete the file from the server or database
-    return {"message": f"File with ID {file_id} deleted successfully."}
+        if not jira_result.success and not jira_result.created_tasks:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "message": "Не удалось создать задачи в Jira",
+                    "errors": jira_result.errors
+                }
+            )
 
+        return {
+            "success": True,
+            "message": "Результат принят и задачи созданы в Jira",
+            "result_id": request.result_id,
+            "jira_result": jira_result
+        }
 
-@processing_router.get("/download")
-async def download_file(file_id: str):
-    """
-    Endpoint to download a file.
-    This is a placeholder function that can be extended to handle file downloads.
-    """
-    # Here you would typically retrieve the file from the server or database
-    return {"message": f"File with ID {file_id} downloaded successfully."}
-
-
-@processing_router.get("/info")
-async def get_file_info(file_id: str):
-    """
-    Endpoint to get information about a file.
-    This is a placeholder function that can be extended to return file metadata.
-    """
-    # Here you would typically retrieve file metadata from the server or database
-    return {"message": f"Information for file with ID {file_id} retrieved successfully."}
-
-
-@processing_router.get("/list")
-async def list_files():
-    """
-    Endpoint to list all files.
-    This is a placeholder function that can be extended to return a list of files.
-    """
-    # Here you would typically retrieve a list of files from the server or database
-    return {"message": "List of files retrieved successfully.", "files": []}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Ошибка при создании задач: {str(e)}"
+        )
