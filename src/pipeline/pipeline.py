@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 async def process_document(file: File,
                            model: str = "yandex-gpt",
                            base_url: str = "http://localhost:11434") -> Dict[str, str]:
-    """Функция для создания резюме документа с использованием Pipeline."""
+    """Функция для обработки документа с использованием Pipeline."""
 
     # Сохраняем файл временно
     with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
@@ -60,7 +60,7 @@ async def process_document(file: File,
             }
         else:
             return {
-                "error": "Не удалось создать резюме для данного документа.",
+                "error": "Не удалось создать задачи для данного документа.",
                 "summary": "",
                 "success": False
             }

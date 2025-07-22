@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 from dataclasses import dataclass
@@ -9,12 +10,16 @@ from jira import JIRA
 from src.schemas.jira.jira_schemas import JiraTaskRequest, JiraTaskResponse
 
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
 @dataclass
 class ParsedTask:
     task_id: str
     title: str
-    priority: str
-    assignee: str
+    # priority: str
+    # assignee: str
     time_estimate: str
     description: str
     acceptance_criteria: List[str]
@@ -39,7 +44,7 @@ class JiraService:
             )
 
     def parse_tasks_from_text(self, text: str) -> List[ParsedTask]:
-        """Парсинг задач из текста."""
+        """Парсинг задач из текстового блока."""
         tasks = []
 
         # Разделяем текст на блоки задач
@@ -51,27 +56,34 @@ class JiraService:
                 if task:
                     tasks.append(task)
             except Exception as e:
-                print(f"Ошибка парсинга задачи {i}: {str(e)}")
+                logger.error(f"Ошибка парсинга задачи {i}: {str(e)}")
                 continue
 
         return tasks
 
     def _parse_single_task(self, task_prefix: str, block: str) -> Optional[ParsedTask]:
-        """
-        Парсинг одной задачи из текстового блока.
-        """
+        """Парсинг одной задачи из текстового блока."""
+
         try:
             # Извлекаем заголовок
             title_match = re.search(r'^([^\n]+)', block)
-            title = title_match.group(1).strip() if title_match else "Без названия"
+            origin_title = title_match.group(1).strip() if title_match else "Без названия"
 
-            # Извлекаем приоритет
-            priority_match = re.search(r'\*\*Приоритет:\*\*\s*(\w+)', block)
-            priority = priority_match.group(1) if priority_match else "Medium"
 
-            # Извлекаем исполнителя
-            assignee_match = re.search(r'\*\*Исполнитель:\*\*\s*([^(]+)', block)
-            assignee = assignee_match.group(1).strip() if assignee_match else "Не назначен"
+            title_words = origin_title.split()[:5]  # Ограничиваем заголовок первыми 5 словами
+            short_title = " ".join(title_words)
+            if len(short_title) > 100:  # Ограничиваем длину заголовка до 80 символов
+                title = short_title[:77] + "..."
+            else:
+                title = short_title
+
+            # # Извлекаем приоритет
+            # priority_match = re.search(r'\*\*Приоритет:\*\*\s*(\w+)', block)
+            # priority = priority_match.group(1) if priority_match else "Medium"
+
+            # # Извлекаем исполнителя
+            # assignee_match = re.search(r'\*\*Исполнитель:\*\*\s*([^(]+)', block)
+            # assignee = assignee_match.group(1).strip() if assignee_match else "Не назначен"
 
             # Извлекаем время выполнения
             time_match = re.search(r'\*\*Время выполнения:\*\*\s*([^\n]+)', block)
@@ -103,8 +115,8 @@ class JiraService:
             return ParsedTask(
                 task_id=f"{task_prefix}",
                 title=title,
-                priority=priority,
-                assignee=assignee,
+                # priority=priority,
+                # assignee=assignee,
                 time_estimate=time_estimate,
                 description=description,
                 acceptance_criteria=acceptance_criteria,
@@ -112,23 +124,25 @@ class JiraService:
             )
 
         except Exception as e:
-            print(f"Ошибка парсинга задачи: {str(e)}")
+            logger.error(f"Ошибка парсинга задачи: {str(e)}")
             return None
 
-    def _map_priority(self, priority: str) -> str:
-        """Маппинг приоритетов на Jira приоритеты."""
-        priority_mapping = {
-            'high': 'High',
-            'medium': 'Medium',
-            'low': 'Low',
-            'critical': 'Highest',
-            'highest': 'Highest',
-            'lowest': 'Lowest'
-        }
-        return priority_mapping.get(priority.lower(), 'Medium')
+    # def _map_priority(self, priority: str) -> str:
+    #     """Маппинг приоритетов на Jira приоритеты."""
+    #
+    #     priority_mapping = {
+    #         'high': 'High',
+    #         'medium': 'Medium',
+    #         'low': 'Low',
+    #         'critical': 'Highest',
+    #         'highest': 'Highest',
+    #         'lowest': 'Lowest'
+    #     }
+    #     return priority_mapping.get(priority.lower(), 'Medium')
 
     def _get_user_account_id(self, display_name: str) -> Optional[str]:
         """Получение account_id пользователя по имени."""
+
         try:
             # Поиск пользователей по имени
             users = self.jira.search_users(display_name)
@@ -143,15 +157,27 @@ class JiraService:
 
             return None
         except Exception as e:
-            print(f"Ошибка поиска пользователя {display_name}: {str(e)}")
+            logger.error(f"Ошибка поиска пользователя {display_name}: {str(e)}")
             return None
 
     def create_jira_task(self, task: ParsedTask, project_key: str, epic_key: Optional[str] = None) -> Dict[str, Any]:
-        """Создание задачи в Jira."""
+        """
+        Создание задачи в Jira
+        """
         try:
+            # Проверяем существование проекта
+            try:
+                project = self.jira.project(project_key)
+            except Exception as e:
+                return {
+                    'success': False,
+                    'error': f'Проект "{project_key}" не найден. Доступные проекты: {self._get_available_projects()}',
+                    'title': task.title
+                }
+
             # Формируем описание задачи
             description_parts = [
-                f"*Исполнитель:* {task.assignee}",
+                # f"*Исполнитель:* {task.assignee}",
                 f"*Время выполнения:* {task.time_estimate}",
                 f"*Описание:* {task.description}",
                 ""
@@ -174,8 +200,8 @@ class JiraService:
 
             description = "\n".join(description_parts)
 
-            # Получаем account_id исполнителя
-            assignee_account_id = self._get_user_account_id(task.assignee)
+            # # Получаем account_id исполнителя
+            # assignee_account_id = self._get_user_account_id(task.assignee)
 
             # Данные для создания задачи
             issue_dict = {
@@ -183,16 +209,21 @@ class JiraService:
                 'summary': f"{task.task_id}: {task.title}",
                 'description': description,
                 'issuetype': {'name': 'Task'},
-                'priority': {'name': self._map_priority(task.priority)},
+                # 'priority': {'name': self._map_priority(task.priority)},
             }
 
-            # Добавляем исполнителя если найден
-            if assignee_account_id:
-                issue_dict['assignee'] = {'accountId': assignee_account_id}
+            # # Добавляем исполнителя если найден
+            # if assignee_account_id:
+            #     issue_dict['assignee'] = {'accountId': assignee_account_id}
 
             # Привязываем к эпику если указан
             if epic_key:
-                issue_dict['parent'] = {'key': epic_key}
+                try:
+                    # Проверяем существование эпика
+                    epic_issue = self.jira.issue(epic_key)
+                    issue_dict['parent'] = {'key': epic_key}
+                except Exception:
+                    logger.error(f"Предупреждение: Эпик {epic_key} не найден, создаем задачу без привязки к эпику")
 
             # Создаем задачу
             new_issue = self.jira.create_issue(fields=issue_dict)
@@ -205,15 +236,30 @@ class JiraService:
             }
 
         except Exception as e:
+            error_msg = str(e)
             return {
                 'success': False,
-                'error': str(e),
+                'error': error_msg,
                 'title': task.title
             }
 
-    async def process_tasks_to_jira(self, request: JiraTaskRequest) -> JiraTaskResponse:
-        """Основной метод для обработки текста и создания задач в Jira."""
+    def _get_available_projects(self) -> str:
+        """
+        Получение списка доступных проектов для вывода в ошибке
+        """
         try:
+            projects = self.jira.projects()
+            project_keys = [p.key for p in projects[:5]]  # Показываем первые 5
+            return ', '.join(project_keys)
+        except:
+            return "не удалось получить список"
+
+    async def process_tasks_to_jira(self, request: JiraTaskRequest) -> JiraTaskResponse:
+        """
+        Основной метод для обработки текста и создания задач в Jira
+        """
+        try:
+            # Парсим задачи из текста
             tasks = self.parse_tasks_from_text(request.tasks_text)
 
             if not tasks:
@@ -263,7 +309,6 @@ def get_jira_service() -> JiraService:
     server_url = os.getenv('JIRA_SERVER_URL', 'https://sonyakarm.atlassian.net')
     username = os.getenv('JIRA_USERNAME', 'sonyakarm@icloud.com')
     api_token = os.getenv('JIRA_API_TOKEN', "ATATT3xFfGF0W4kLpVYxmT2rwIuB4rAJB0DmPYFfugK36k8Z3iboSEBAgrbeat6rkntLxj_2GVpINs0rpndjtyzjNrMd61JQdpI8kNfEpc-8eEWqTwMuFgmImTPTh-HkUDHKY2u1PQ18KoTCsJ8HBcCmvv4sb4D29lrkrRcVIAaeaSdYxId94XI=1A1937E5")
-    print(server_url, username, api_token)
 
     if not all([server_url, username, api_token]):
         raise HTTPException(
