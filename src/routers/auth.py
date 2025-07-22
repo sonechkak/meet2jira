@@ -18,17 +18,17 @@ auth_router = APIRouter(
 
 @auth_router.post("/login")
 async def login(
-    login_data: LoginRequestSchema,
+    request: LoginRequestSchema,
     auth_service: AuthService = Depends(get_auth_service)
 ) -> LoginResponseSchema:
     """Login endpoint for user authentication."""
 
     try:
         user = await auth_service.login(
-            identifier=login_data.identifier,
-            password=login_data.password,
-            remember_me=login_data.remember_me,
-            captcha=login_data.captcha
+            identifier=request.identifier,
+            password=request.password,
+            remember_me=request.remember_me,
+            captcha=request.captcha
         )
 
         if not user:
