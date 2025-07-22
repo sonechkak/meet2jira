@@ -26,19 +26,6 @@ class JiraService:
         )
         self.server_url = server_url
 
-    # def _map_priority(self, priority: str) -> str:
-    #     """Маппинг приоритетов на Jira приоритеты."""
-    #
-    #     priority_mapping = {
-    #         'high': 'High',
-    #         'medium': 'Medium',
-    #         'low': 'Low',
-    #         'critical': 'Highest',
-    #         'highest': 'Highest',
-    #         'lowest': 'Lowest'
-    #     }
-    #     return priority_mapping.get(priority.lower(), 'Medium')
-
     def _get_user_account_id(self, display_name: str) -> Optional[str]:
         """Получение account_id пользователя по имени."""
 
@@ -59,10 +46,20 @@ class JiraService:
             logger.error(f"Ошибка поиска пользователя {display_name}: {str(e)}")
             return None
 
+    def _get_available_projects(self) -> str:
+        """
+        Получение списка доступных проектов для вывода в ошибке
+        """
+        try:
+            projects = self.jira.projects()
+            project_keys = [p.key for p in projects[:5]]  # Показываем первые 5
+            return ', '.join(project_keys)
+        except:
+            return "не удалось получить список"
+
     def create_jira_task(self, task: ParsedTask, project_key: str, epic_key: Optional[str] = None) -> Dict[str, Any]:
-        """
-        Создание задачи в Jira
-        """
+        """Создание задачи в Jira."""
+
         try:
             # Проверяем существование проекта
             try:
@@ -108,7 +105,6 @@ class JiraService:
                 'summary': f"{task.task_id}: {task.title}",
                 'description': description,
                 'issuetype': {'name': 'Task'},
-                # 'priority': {'name': self._map_priority(task.priority)},
             }
 
             # # Добавляем исполнителя если найден
@@ -141,17 +137,6 @@ class JiraService:
                 'error': error_msg,
                 'title': task.title
             }
-
-    def _get_available_projects(self) -> str:
-        """
-        Получение списка доступных проектов для вывода в ошибке
-        """
-        try:
-            projects = self.jira.projects()
-            project_keys = [p.key for p in projects[:5]]  # Показываем первые 5
-            return ', '.join(project_keys)
-        except:
-            return "не удалось получить список"
 
     async def process_tasks_to_jira(self, request: JiraTaskRequest) -> JiraTaskResponse:
         """
