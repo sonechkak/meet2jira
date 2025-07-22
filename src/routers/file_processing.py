@@ -1,76 +1,39 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, File
 
 from src.schemas.auth.user import UserResponseSchema
 
 processing_router = APIRouter(
     prefix="/file",
     tags=["File Processing"],
-    responses={404: {"description": "Not found"}},
 )
 
 
 @processing_router.get("/process", response_model=UserResponseSchema)
 async def process_file():
-    """
-    Endpoint to process a file.
-    This is a placeholder function that can be extended to handle file processing logic.
-    """
+    """Endpoint to process a file."""
     return {"message": "File processing endpoint is under construction."}
+
 
 @processing_router.post("/reject", response_model=UserResponseSchema)
 async def reject_file():
-    """
-    Endpoint to reject a file.
-    This is a placeholder function that can be extended to handle file rejection logic.
-    """
+    """Endpoint to reject a file."""
     return {"message": "File rejection endpoint is under construction."}
 
 
 @processing_router.post("/upload")
-async def upload_file(file: bytes):
-    """
-    Endpoint to upload a file.
-    This is a placeholder function that can be extended to handle file uploads.
-    """
-    # Here you would typically save the file to a server or process it
-    return {"message": "File uploaded successfully.", "file_size": len(file)}
+async def upload_file(file: bytes = File(...)):
+    """Endpoint to upload a file."""
+    pass
+
 
 
 @processing_router.delete("/delete")
 async def delete_file(file_id: str):
-    """
-    Endpoint to delete a file.
-    This is a placeholder function that can be extended to handle file deletion.
-    """
-    # Here you would typically delete the file from the server or database
+    """Endpoint to delete a file."""
     return {"message": f"File with ID {file_id} deleted successfully."}
 
 
 @processing_router.get("/download")
 async def download_file(file_id: str):
-    """
-    Endpoint to download a file.
-    This is a placeholder function that can be extended to handle file downloads.
-    """
-    # Here you would typically retrieve the file from the server or database
+    """Endpoint to download a file."""
     return {"message": f"File with ID {file_id} downloaded successfully."}
-
-
-@processing_router.get("/info")
-async def get_file_info(file_id: str):
-    """
-    Endpoint to get information about a file.
-    This is a placeholder function that can be extended to return file metadata.
-    """
-    # Here you would typically retrieve file metadata from the server or database
-    return {"message": f"Information for file with ID {file_id} retrieved successfully."}
-
-
-@processing_router.get("/list")
-async def list_files():
-    """
-    Endpoint to list all files.
-    This is a placeholder function that can be extended to return a list of files.
-    """
-    # Here you would typically retrieve a list of files from the server or database
-    return {"message": "List of files retrieved successfully.", "files": []}

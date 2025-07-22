@@ -119,11 +119,10 @@ import src.admin.admin
 from src.routers.auth import auth_router
 from src.routers.file_processing import processing_router
 from src.routers.utils import utils_router
+from src.routers.meeting import meeting_router
 
 # Mount admin app
 from fastadmin import fastapi_app as admin_app
-
-# Mount the admin app
 app.mount(settings.ADMIN_PREFIX, admin_app)
 
 
@@ -131,6 +130,7 @@ app.mount(settings.ADMIN_PREFIX, admin_app)
 app.include_router(auth_router, tags=["Authentication"])
 app.include_router(processing_router, tags=["File Processing"])
 app.include_router(utils_router, tags=["Utils"])
+app.include_router(meeting_router, tags=["Meeting Management"])
 
 
 if __name__ == "__main__":
