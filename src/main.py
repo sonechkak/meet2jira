@@ -43,10 +43,10 @@ async def run_migrations():
 
         # Применяем миграции
         command.upgrade(alembic_cfg, "head")
-        print("✅ Migrations applied successfully!")
+        logging.info("Migrations applied successfully.")
         return True
     except Exception as e:
-        print(f"⚠️  Warning: Could not run migrations: {e}")
+        logger.error("Failed to apply migrations: %s", e)
         return False
 
 

@@ -39,8 +39,7 @@ async def process_file(file: UploadFile = File(...)):
 
         return {
             "success": True,
-            "model": pipeline.get("model", "llama3.2"),
-            "document_type": pipeline.get("document_type", "unknown"),
+            "model": pipeline.get("model", "yandex-gpt"),
             "document_name": file.filename,
             "summary": summary,
         }

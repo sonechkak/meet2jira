@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import sys
 from pathlib import Path
 
@@ -10,13 +11,16 @@ from src.models.user import User
 # Добавляем корень проекта в Python path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
-print(f"Project root added to sys.path: {project_root}")
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 async def create_superuser():
     """Создание суперпользователя"""
 
-    print("🔐 Creating superuser for FastAdmin...")
+    logger.info("🔐 Creating superuser for FastAdmin...")
 
     # Данные по умолчанию
     username = "admin"
@@ -24,7 +28,7 @@ async def create_superuser():
     password = "admin123"
     full_name = "Administrator"
 
-    print(f"Creating user: {username} / {email}")
+    logger.info(f"Creating user: {username} / {email}")
 
     # Хешируем пароль
     hash_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -47,15 +51,15 @@ async def create_superuser():
             session.add(superuser)
             await session.commit()
 
-            print(f"✅ Superuser '{username}' created successfully!")
-            print(f"📧 Email: {email}")
-            print(f"🔑 Password: {password}")
-            print(f"🌐 Admin URL: http://localhost:8000/admin")
+            logger.info(f"✅ Superuser '{username}' created successfully!")
+            logger.info(f"📧 Email: {email}")
+            logger.info(f"🔑 Password: {password}")
+            logger.info(f"🌐 Admin URL: http://localhost:8000/admin")
 
         except Exception as e:
-            print(f"❌ Error creating superuser: {e}")
+            logger.error(f"❌ Error creating superuser: {e}")
             # Возможно пользователь уже существует
-            print("User might already exist. Try different credentials.")
+            logger.info("User might already exist. Try different credentials.")
 
 
 if __name__ == "__main__":

@@ -12,7 +12,11 @@ logger = logging.getLogger(__name__)
 class LlmService(Element):
     """Сервис для ламы."""
 
-    def __init__(self, prompt: str, model="llama3.2", base_url="http://localhost:11434") -> None:
+    def __init__(
+            self,
+            prompt: str,
+            model="yandex-gpt",
+            base_url="http://localhost:11434") -> None:
         """Инициализация сервиса LLM."""
         logger.info("Инициализация LLM сервиса с моделью %s и базовым URL %s", model, base_url)
         super().__init__(model=model, tools=[], prompt="", obj=None)
@@ -21,7 +25,7 @@ class LlmService(Element):
         self.api_url = f"{base_url}/api/generate"
 
     def run(self) -> Dict[str, str]:
-        """Вызов API Ollama для получения ответа на запрос."""
+        """Вызов API model для получения ответа на запрос."""
         try:
             logger.info(f"Вызов модели {self.model}")
 
@@ -36,7 +40,7 @@ class LlmService(Element):
                 }
             }
 
-            logger.info(f"Отправка запроса к Ollama API: {self.api_url}")
+            logger.info(f"Отправка запроса к модели: {self.api_url}")
             response = requests.post(
                 self.api_url,
                 json=payload,
@@ -68,10 +72,9 @@ class LlmService(Element):
                 }
 
         except Exception as e:
-            print(f"Error calling Ollama API: {e}")
-            logger.error(f"Ошибка при вызове API Ollama: {str(e)}")
+            logger.error(f"Ошибка при вызове API model: {str(e)}")
             return {
-                "error": f"Ошибка при вызове API Ollama: {str(e)}",
+                "error": f"Ошибка при вызове API model: {str(e)}",
                 "response": ""
             }
 
@@ -84,7 +87,7 @@ class LlmService(Element):
             }
 
         except requests.exceptions.ConnectionError:
-            error_msg = f"Не удается подключиться к Ollama по адресу {self.api_url}"
+            error_msg = f"Не удается подключиться к модели по адресу {self.api_url}"
             logger.error(error_msg)
             return {
                 "error": error_msg,

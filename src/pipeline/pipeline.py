@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 async def process_document(file: File,
-                           model: str = "llama3.2",
+                           model: str = "yandex-gpt",
                            base_url: str = "http://localhost:11434") -> Dict[str, str]:
     """Функция для создания резюме документа с использованием Pipeline."""
 

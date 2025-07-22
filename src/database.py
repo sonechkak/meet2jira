@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import AsyncGenerator
@@ -7,6 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 from sqlalchemy.orm import DeclarativeBase
 
 from src.settings.config import settings
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
 
 # Create metadata with naming convention for better constraint names
 metadata = MetaData(
@@ -94,5 +100,5 @@ async def check_db_health() -> bool:
             await session.execute("SELECT 1")
             return True
     except Exception as e:
-        print(f"Database health check failed: {e}")
+        logger.error(f"Database health check failed: {e}")
         return False
