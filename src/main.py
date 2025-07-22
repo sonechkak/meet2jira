@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 
 from src.database import (
@@ -90,12 +91,26 @@ app = FastAPI(
 
 # Подключение статических файлов
 try:
-    app.mount("/static", StaticFiles(directory="backend/static"), name="static")
+    app.mount("/static", StaticFiles(directory="static"), name="static")
 except RuntimeError:
     # Папка не существует, создадим при первом запуске
     import os
     os.makedirs("backend/static/images", exist_ok=True)
     app.mount("/static", StaticFiles(directory="backend/static"), name="static")
+
+
+# CORS для фронтенда
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+UPLOAD_DIR = "../uploaded_files"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 @app.get("/", summary="Root Endpoint", tags=["Root"])

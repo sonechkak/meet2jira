@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Обработка документов</title>
+    <link rel="stylesheet" href="css/index.css" />
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Meet2Jira</h1>
+            <p>Загрузите документ для автоматического создания тасок в Jira</p>
+        </div>
+
+        <div class="content">
+            <div class="upload-section">
+                <div class="file-format-info">
+                    <strong>📋 Поддерживаемые форматы:</strong>
+                    <div class="supported-formats">
+                        <span class="format-tag">PDF</span>
+                        <span class="format-tag">DOCX</span>
+                        <span class="format-tag">TXT</span>
+                        <span class="format-tag">MD</span>
+                        <span class="format-tag">JPG</span>
+                        <span class="format-tag">PNG</span>
+                        <span class="format-tag">TIFF</span>
+                        <span class="format-tag">BMP</span>
+                    </div>
+                </div>
+
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon" id="uploadIcon">📄</div>
+                    <div class="upload-text" id="uploadText">
+                        Перетащите документ или изображение сюда или выберите файл
+                    </div>
+                    <input type="file" id="fileInput" style="display: none;"
+                           accept=".pdf,.docx,.txt,.md,.jpg,.jpeg,.png,.tiff,.bmp">
+                    <button class="upload-btn" id="uploadBtn"
+                            onclick="document.getElementById('fileInput').click()">
+                        Выбрать файл
+                    </button>
+
+                    <div class="processing-indicator" id="processingIndicator">
+                        <div class="spinner"></div>
+                        <div class="processing-text">Обрабатываем документ...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="message"></div>
+
+            <div class="results-section" id="resultsSection">
+                <h2 class="section-title">📝 Результат обработки</h2>
+                <div id="resultsList"></div>
+            </div>
+        </div>
+    </div>
+    <script src="js/index.js"></script>
+</body>
+</html>

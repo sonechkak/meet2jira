@@ -13,7 +13,7 @@ client = openai.OpenAI(
 
 # Запрос к модели
 response = client.chat.completions.create(
-    model="hf.co/yandex/YandexGPT-5-Lite-8B-instruct-GGUF:Q4_K_M",
+    model="yandex-gpt",
     messages=[
         {"role": "user", "content": "Привет! Ты говоришь по-русски?"}
     ],
@@ -21,4 +21,4 @@ response = client.chat.completions.create(
     temperature=0.7
 )
 
-logger.info(response)
+print(response.choices[0].message.content.strip())

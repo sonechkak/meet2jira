@@ -1,8 +1,9 @@
 import logging
 
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from starlette import status
 
+from src.database import AsyncSessionLocal, get_db_session
 from src.pipeline.pipeline import process_document
 from src.schemas.auth.user import UserResponseSchema
 
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 @processing_router.post("/process")
-async def process_file(file: UploadFile = File(...)):
+async def process_file(file: UploadFile = File(...), db: AsyncSessionLocal = Depends(get_db_session)):
     """Endpoint to process a file."""
     try:
         pipeline = await process_document(file)
