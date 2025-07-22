@@ -7,7 +7,6 @@ from fastapi import File
 
 from .elements.base import Pipeline
 from src.services.llm_service import LlmService
-from src.tools.document_classify import DocumentClassifier
 from src.tools.prompt_generator import PromptGenerator
 from src.utils.file_utils import extract_text_from_file
 
@@ -34,19 +33,15 @@ async def process_document(file: File,
         if not text.strip():
             return {
                 "error": "Не удалось извлечь текст из файла",
-                "document_type": "unknown",
                 "summary": "",
                 "success": False
             }
 
-        # 2. Классифицируем документ
-        document_classifier = DocumentClassifier(document_content=text)
-        document_type = document_classifier.run()
-
-        prompt_generator = PromptGenerator(document_type=document_type, text=text)
+        # 2. Генерируем промпт для LLM
+        prompt_generator = PromptGenerator(text=text)
         prompt = prompt_generator.run()
 
-        # Создаем Pipeline с LlmService
+        # 3. Создаем Pipeline с LlmService
         pipeline = Pipeline(
             model=model,
             tools=[],
@@ -54,20 +49,19 @@ async def process_document(file: File,
                 LlmService(prompt=prompt),
             ]
         )
-        # Запускаем pipeline
+        # 4. Запускаем pipeline
         summary = pipeline.run()
 
         if summary:
             return {
                 "summary": summary,
-                "document_type": document_type,
                 "document_name": file.filename,
                 "success": True
             }
         else:
             return {
-                "error": summary or "Не удалось получить ответ от модели",
-                "document_type": pipeline.document_type or "unknown",
+                "error": "Не удалось создать резюме для данного документа.",
+                "summary": "",
                 "success": False
             }
 
@@ -75,7 +69,6 @@ async def process_document(file: File,
         logger.error(f"Ошибка при обработке документа: {str(e)}")
         return {
             "error": f"Ошибка при обработке документа: {str(e)}",
-            "document_type": "unknown",
             "success": False
         }
 

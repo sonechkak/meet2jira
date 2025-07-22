@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-@processing_router.get("/process", response_model=UserResponseSchema)
+@processing_router.post("/process")
 async def process_file(file: UploadFile = File(...)):
     """Endpoint to process a file."""
     try:

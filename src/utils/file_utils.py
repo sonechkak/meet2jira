@@ -5,6 +5,10 @@ def extract_text_from_file(file_path: str, content_type: str) -> str:
         with open(file_path, 'r', encoding='utf-8') as f:
             return f.read()
 
+    elif content_type in ['text/x-markdown', 'text/markdown']:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return f.read()
+
     elif content_type == 'application/pdf':
         import PyPDF2
         with open(file_path, 'rb') as f:
@@ -31,3 +35,4 @@ def extract_text_from_file(file_path: str, content_type: str) -> str:
 
     else:
         raise ValueError(f"Unsupported file type: {content_type}")
+
