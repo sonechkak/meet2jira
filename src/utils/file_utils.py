@@ -1,5 +1,9 @@
 import logging
 import re
+import pytesseract
+from pypdf import PdfReader
+from docx import Document
+from PIL import Image
 from typing import List, Optional
 
 from src.models.parsed_task import ParsedTask
@@ -20,9 +24,8 @@ def extract_text_from_file(file_path: str, content_type: str) -> str:
             return f.read()
 
     elif content_type == 'application/pdf':
-        import PyPDF2
         with open(file_path, 'rb') as f:
-            reader = PyPDF2.PdfReader(f)
+            reader = PdfReader(f)
             text = ""
             for page in reader.pages:
                 text += page.extract_text()
@@ -30,16 +33,13 @@ def extract_text_from_file(file_path: str, content_type: str) -> str:
 
     elif content_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
         # Word документы (.docx)
-        from docx import Document
-        doc = Document(file_path)
+        doc =  Document(file_path)
         text = ""
         for paragraph in doc.paragraphs:
             text += paragraph.text + "\n"
         return text
 
     elif content_type.startswith('image/'):
-        import pytesseract
-        from PIL import Image
         image = Image.open(file_path)
         return pytesseract.image_to_string(image, lang='rus+eng')
 
