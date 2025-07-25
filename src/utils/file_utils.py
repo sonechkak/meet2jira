@@ -13,16 +13,31 @@ logger = logging.getLogger(__name__)
 
 
 def extract_text_from_file(file_path: str, content_type: str) -> str:
-    """Extract text from different file types."""
+    """Извлечь текст из файла в зависимости от его типа."""
 
+    # Проверяем, существует ли файл
     if content_type == 'text/plain':
         with open(file_path, 'r', encoding='utf-8') as f:
             return f.read()
 
+    # Image files
+    elif content_type in ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'] or content_type.startswith('image/'):
+        image = Image.open(file_path)
+        available_langs = pytesseract.get_languages(config='')
+
+        if 'rus' in available_langs and 'eng' in available_langs:
+            return pytesseract.image_to_string(image, lang='rus+eng')
+        elif 'eng' in available_langs:
+            return pytesseract.image_to_string(image, lang='eng')
+        else:
+            return pytesseract.image_to_string(image)
+
+    # Markdown files
     elif content_type in ['text/x-markdown', 'text/markdown']:
         with open(file_path, 'r', encoding='utf-8') as f:
             return f.read()
 
+    # PDF files
     elif content_type == 'application/pdf':
         with open(file_path, 'rb') as f:
             reader = PdfReader(f)
@@ -31,17 +46,13 @@ def extract_text_from_file(file_path: str, content_type: str) -> str:
                 text += page.extract_text()
             return text
 
+    # Docx files
     elif content_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
-        # Word документы (.docx)
         doc =  Document(file_path)
         text = ""
         for paragraph in doc.paragraphs:
             text += paragraph.text + "\n"
         return text
-
-    elif content_type.startswith('image/'):
-        image = Image.open(file_path)
-        return pytesseract.image_to_string(image, lang='rus+eng')
 
     else:
         raise ValueError(f"Unsupported file type: {content_type}")
