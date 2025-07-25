@@ -7,7 +7,7 @@ from starlette import status
 from src.database import AsyncSessionLocal, get_db_session
 from src.pipeline.pipeline import process_document
 from src.schemas.jira.jira_schemas import JiraTaskRequest
-from src.schemas.jira.request_schemas import AcceptResultRequest
+from src.schemas.jira.request_schemas import AcceptResultRequest, RejectResultRequest
 from src.services.jira_service import JiraService, get_jira_service
 
 processing_router = APIRouter(
@@ -80,13 +80,42 @@ async def accept_file(
 
         return {
             "success": True,
-            "message": "Результат принят и задачи созданы в Jira",
-            "result_id": request.result_id,
-            "jira_result": jira_result
+            "message": "Результат принят и задачи созданы в Jira!",
+            "jira_result": {
+                "success": jira_result.success,
+                "created_tasks": [
+                    {
+                        "key": task["key"],
+                        "url": task["url"],
+                        "title": task["title"]
+                    } for task in jira_result.created_tasks
+                ],
+                "errors": jira_result.errors
+            }
         }
 
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"Ошибка при создании задач: {str(e)}"
+        )
+
+
+@processing_router.post("/file/reject")
+async def reject_feedback(request: RejectResultRequest):
+    """Обработка отрицательной обратной связи."""
+
+    try:
+        return {
+            "success": True,
+            "message": "Обратная связь учтена, поможет улучшить систему"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Ошибка обработки отрицательной обратной связи: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Внутренняя ошибка сервера: {str(e)}"
         )

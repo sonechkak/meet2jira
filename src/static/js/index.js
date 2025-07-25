@@ -117,35 +117,12 @@ const UI = {
         const resultId = `result-${Date.now()}`;
         const summaryId = `summary-${Date.now()}`;
 
-        // Формируем блок с результатами Jira
-        let jiraHTML = '';
-        if (result.jira_result) {
-            if (result.jira_result.success && result.jira_result.created_tasks?.length > 0) {
-                jiraHTML = `
-                    <div class="jira-success">
-                        <h4>✅ Задачи созданы в Jira:</h4>
-                        <div class="jira-tasks-list">
-                            ${result.jira_result.created_tasks.map(task => `
-                                <div class="jira-task-item">
-                                    <a href="${task.url}" target="_blank" class="jira-task-link">
-                                        🎯 ${task.key}: ${Utils.escapeHtml(task.title)}
-                                    </a>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            }
-
-            if (result.jira_result.errors?.length > 0) {
-                jiraHTML += `
-                    <div class="jira-warnings">
-                        <h4>⚠️ Предупреждения:</h4>
-                        <ul>${result.jira_result.errors.map(error => `<li>${Utils.escapeHtml(error)}</li>`).join('')}</ul>
-                    </div>
-                `;
-            }
-        }
+        // Формируем блок для будущих результатов Jira (пока пустой)
+        const jiraHTML = `
+            <div class="jira-placeholder" id="jira-${resultId}" style="display: none;">
+                <!-- Результаты Jira появятся здесь после нажатия "Хороший результат" -->
+            </div>
+        `;
 
         const resultHTML = `
             <div class="result-card" id="${resultId}">
@@ -165,11 +142,11 @@ const UI = {
                     <button class="copy-btn" onclick="Actions.copySummary('${summaryId}')">
                         📋 Копировать задачи
                     </button>
-                    <button class="feedback-btn accept-btn" onclick="Actions.giveFeedback('${resultId}', 'accept')">
-                        👍 Хороший результат
+                    <button class="feedback-btn accept-btn" onclick="Actions.createJiraTasks('${resultId}')">
+                        ✅ Хороший результат - создать задачи в Jira
                     </button>
                     <button class="feedback-btn reject-btn" onclick="Actions.giveFeedback('${resultId}', 'reject')">
-                        👎 Плохой результат
+                        ❌ Плохой результат
                     </button>
                 </div>
                 
@@ -183,6 +160,26 @@ const UI = {
         setTimeout(() => {
             resultsSection.scrollIntoView({behavior: 'smooth', block: 'start'});
         }, 100);
+    },
+
+    // Вспомогательные методы для склонения слов
+    getTaskWord(count) {
+        if (count % 10 === 1 && count % 100 !== 11) return 'задача';
+        if ([2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100)) return 'задачи';
+        return 'задач';
+    },
+
+    getErrorWord(count) {
+        if (count % 10 === 1 && count % 100 !== 11) return 'ошибка';
+        if ([2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100)) return 'ошибки';
+        return 'ошибок';
+    },
+
+    getStatusClass(jiraResult) {
+        if (!jiraResult) return 'status-info';
+        if (jiraResult.success && jiraResult.created_tasks?.length > 0) return 'status-success';
+        if (jiraResult.errors?.length > 0) return 'status-error';
+        return 'status-warning';
     }
 };
 
@@ -213,15 +210,7 @@ const Actions = {
 
             if (response.ok && result.success) {
                 UI.showResult(result);
-
-                // Определяем сообщение в зависимости от результата Jira
-                if (result.jira_result?.success && result.jira_result?.created_tasks?.length > 0) {
-                    UI.showMessage('Документ обработан и задачи созданы в Jira!', 'success');
-                } else if (result.jira_result?.errors?.length > 0) {
-                    UI.showMessage('Документ обработан, но возникли проблемы с созданием задач в Jira', 'warning');
-                } else {
-                    UI.showMessage('Документ успешно обработан!', 'success');
-                }
+                UI.showMessage('Документ успешно обработан! Нажмите "Хороший результат" для создания задач в Jira', 'success');
             } else {
                 throw new Error(Utils.getErrorMessage(result));
             }
@@ -253,38 +242,158 @@ const Actions = {
         });
     },
 
+    async createJiraTasks(resultId) {
+        const resultCard = document.getElementById(resultId);
+        const buttons = resultCard.querySelectorAll('.feedback-btn');
+        const acceptBtn = resultCard.querySelector('.accept-btn');
+        const jiraPlaceholder = document.getElementById(`jira-${resultId}`);
+
+        // Получаем текст задач
+        const summaryElement = resultCard.querySelector('.summary-content');
+        const tasksText = summaryElement ? (summaryElement.textContent || summaryElement.innerText) : '';
+
+        // Показываем загрузку
+        acceptBtn.innerHTML = '⏳ Создаем задачи в Jira...';
+        buttons.forEach(btn => btn.disabled = true);
+
+        try {
+            const requestData = {
+                result_id: resultId,
+                tasks_text: tasksText,
+                project_key: 'LEARNJIRA',
+                epic_key: ''
+            };
+
+            console.log('Создаем задачи в Jira:', requestData);
+
+            const response = await fetch('/file/accept', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(requestData)
+            });
+
+            const result = await response.json();
+            console.log('Ответ сервера:', result);
+
+            if (response.ok && result.success && result.jira_result) {
+                // Создаем HTML с результатами Jira
+                const createdCount = result.jira_result.created_tasks?.length || 0;
+                const errorsCount = result.jira_result.errors?.length || 0;
+
+                let jiraHTML = '';
+                let statusMessage = '';
+
+                if (result.jira_result.success && createdCount > 0) {
+                    jiraHTML = `
+                        <div class="jira-success">
+                            <h4>✅ Создано задач в Jira: ${createdCount}</h4>
+                            <div class="jira-tasks-list">
+                                ${result.jira_result.created_tasks.map((task, index) => `
+                                    <div class="jira-task-item">
+                                        <span class="task-number">${index + 1}.</span>
+                                        <a href="${task.url}" target="_blank" class="jira-task-link">
+                                            🎯 <strong>${task.key}</strong>: ${Utils.escapeHtml(task.title)}
+                                        </a>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+
+                    statusMessage = `Создано ${createdCount} ${UI.getTaskWord(createdCount)} в Jira`;
+                } else if (createdCount === 0 && errorsCount > 0) {
+                    jiraHTML = `
+                        <div class="jira-error">
+                            <h4>❌ Задачи не созданы (${errorsCount} ${UI.getErrorWord(errorsCount)})</h4>
+                        </div>
+                    `;
+                    statusMessage = `Не удалось создать задачи в Jira`;
+                }
+
+                // Показываем ошибки если есть
+                if (errorsCount > 0) {
+                    jiraHTML += `
+                        <div class="jira-warnings">
+                            <h4>⚠️ Предупреждения (${errorsCount}):</h4>
+                            <ul>
+                                ${result.jira_result.errors.map((error, index) => 
+                                    `<li><strong>${index + 1}.</strong> ${Utils.escapeHtml(error)}</li>`
+                                ).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                // Добавляем статусный бейдж
+                jiraHTML += `
+                    <div class="result-summary">
+                        <div class="status-badge ${UI.getStatusClass(result.jira_result)}">
+                            ${statusMessage}
+                        </div>
+                    </div>
+                `;
+
+                // Отображаем результаты
+                jiraPlaceholder.innerHTML = jiraHTML;
+                jiraPlaceholder.style.display = 'block';
+
+                // Обновляем кнопки
+                acceptBtn.innerHTML = '✅ Задачи созданы в Jira';
+                acceptBtn.style.opacity = '0.7';
+
+                // Добавляем визуальный статус
+                resultCard.classList.add('feedback-positive');
+
+                UI.showMessage(result.message || `Создано ${createdCount} ${UI.getTaskWord(createdCount)} в Jira!`, 'success');
+
+            } else {
+                throw new Error(Utils.getErrorMessage(result) || 'Ошибка создания задач в Jira');
+            }
+        } catch (error) {
+            console.error('Jira creation error:', error);
+
+            // Показываем ошибку в placeholder
+            jiraPlaceholder.innerHTML = `
+                <div class="jira-error">
+                    <h4>❌ Ошибка создания задач</h4>
+                    <p>${Utils.getErrorMessage(error)}</p>
+                </div>
+            `;
+            jiraPlaceholder.style.display = 'block';
+
+            // Возвращаем кнопку в исходное состояние
+            acceptBtn.innerHTML = '✅ Хороший результат - создать задачи в Jira';
+            buttons.forEach(btn => btn.disabled = false);
+
+            UI.showMessage(`Ошибка создания задач: ${Utils.getErrorMessage(error)}`, 'error');
+        }
+    },
+
     async giveFeedback(resultId, feedbackType) {
         const resultCard = document.getElementById(resultId);
         const buttons = resultCard.querySelectorAll('.feedback-btn');
         const targetButton = resultCard.querySelector(`.${feedbackType}-btn`);
 
         // Показываем загрузку
-        targetButton.innerHTML = feedbackType === 'accept' ? '⏳ Отправка...' : '⏳ Отправка...';
+        targetButton.innerHTML = '⏳ Отправка...';
         buttons.forEach(btn => btn.disabled = true);
 
         try {
-            const endpoint = feedbackType === 'accept' ? '/file/accept' : '/file/reject';
-
             // Получаем текст задач для отправки
             const summaryElement = resultCard.querySelector('.summary-content');
             const tasksText = summaryElement ? (summaryElement.textContent || summaryElement.innerText) : '';
 
-            // Единая структура данных для обоих endpoint'ов
             const requestData = {
                 result_id: resultId,
-                tasks_text: tasksText,  // Добавляем для обоих случаев
+                tasks_text: tasksText,
                 feedback_type: feedbackType,
+                reason: 'Результат отклонен пользователем',
                 timestamp: new Date().toISOString()
             };
 
-            // Для reject добавляем причину
-            if (feedbackType === 'reject') {
-                requestData.reason = 'Результат отклонен пользователем';
-            }
-
             console.log('Отправляем обратную связь:', requestData);
 
-            const response = await fetch(endpoint, {
+            const response = await fetch('/file/reject', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(requestData)
@@ -294,13 +403,13 @@ const Actions = {
             console.log('Ответ сервера:', result);
 
             if (response.ok && result.success) {
-                targetButton.innerHTML = feedbackType === 'accept' ? '✅ Спасибо!' : '❌ Учтено';
+                targetButton.innerHTML = '❌ Учтено';
                 targetButton.style.opacity = '0.7';
 
                 // Добавляем визуальный статус
-                resultCard.classList.add(feedbackType === 'accept' ? 'feedback-positive' : 'feedback-negative');
+                resultCard.classList.add('feedback-negative');
 
-                UI.showMessage(result.message || 'Спасибо за обратную связь!', 'success');
+                UI.showMessage(result.message || 'Обратная связь учтена!', 'success');
             } else {
                 throw new Error(Utils.getErrorMessage(result) || 'Ошибка отправки обратной связи');
             }
@@ -308,7 +417,7 @@ const Actions = {
             console.error('Feedback error:', error);
 
             // Возвращаем кнопку в исходное состояние
-            targetButton.innerHTML = feedbackType === 'accept' ? '👍 Хороший результат' : '👎 Плохой результат';
+            targetButton.innerHTML = '👎 Плохой результат';
             buttons.forEach(btn => btn.disabled = false);
 
             UI.showMessage(`Ошибка обратной связи: ${Utils.getErrorMessage(error)}`, 'error');
