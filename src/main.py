@@ -107,7 +107,7 @@ app.add_middleware(
 )
 
 
-UPLOAD_DIR = "../uploaded_files"
+UPLOAD_DIR = "./img/uploaded_files"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
