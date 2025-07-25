@@ -25,15 +25,8 @@ logger = logging.getLogger(__name__)
 async def process_file(file: UploadFile = File(...), db: AsyncSessionLocal = Depends(get_db_session)):
     """Endpoint to process a file."""
     try:
-        pipeline = await process_document(file)
+        summary = await process_document(file)
 
-        if "error" in pipeline:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=pipeline["error"]
-            )
-
-        summary = pipeline.get("summary", "")
         if not summary:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -42,7 +35,7 @@ async def process_file(file: UploadFile = File(...), db: AsyncSessionLocal = Dep
 
         return {
             "success": True,
-            "model": pipeline.get("model", "yandex-gpt"),
+            "model": summary.get("model", "yandex-gpt"),
             "document_name": file.filename,
             "summary": summary,
         }
