@@ -94,8 +94,6 @@ try:
     app.mount("/static", StaticFiles(directory="static"), name="static")
 except RuntimeError:
     # Папка не существует, создадим при первом запуске
-    import os
-    os.makedirs("backend/static/images", exist_ok=True)
     app.mount("/static", StaticFiles(directory="backend/static"), name="static")
 
 

@@ -1,4 +1,4 @@
-import requests
+import httpx as requests
 import logging
 from typing import Dict
 
@@ -75,29 +75,5 @@ class LlmService(Element):
             logger.error(f"Ошибка при вызове API model: {str(e)}")
             return {
                 "error": f"Ошибка при вызове API model: {str(e)}",
-                "response": ""
-            }
-
-        except requests.exceptions.Timeout:
-            error_msg = "Превышено время ожидания ответа от модели"
-            logger.error(error_msg)
-            return {
-                "error": error_msg,
-                "response": ""
-            }
-
-        except requests.exceptions.ConnectionError:
-            error_msg = f"Не удается подключиться к модели по адресу {self.api_url}"
-            logger.error(error_msg)
-            return {
-                "error": error_msg,
-                "response": ""
-            }
-
-        except requests.exceptions.HTTPError as e:
-            error_msg = f"HTTP ошибка: {e.response.status_code} - {e.response.text}"
-            logger.error(error_msg)
-            return {
-                "error": error_msg,
                 "response": ""
             }

@@ -4,8 +4,8 @@ from typing import List, Optional
 
 from src.models.parsed_task import ParsedTask
 
+
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 def extract_text_from_file(file_path: str, content_type: str) -> str:
