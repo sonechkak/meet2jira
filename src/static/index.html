@@ -10,7 +10,7 @@
     <div class="container">
         <div class="header">
             <h1>🤖 Meet2Jira</h1>
-            <p>Загрузите документ для автоматического создания тасок в Jira</p>
+            <p>Загрузите документ или аудиофайл для автоматического создания тасок в Jira</p>
         </div>
 
         <div class="content">
@@ -26,6 +26,11 @@
                         <span class="format-tag">PNG</span>
                         <span class="format-tag">TIFF</span>
                         <span class="format-tag">BMP</span>
+                        <span class="format-tag">MP3</span>
+                        <span class="format-tag">WAV</span>
+                        <span class="format-tag">M4A</span>
+                        <span class="format-tag">OGG</span>
+                        <span class="format-tag">FLAC</span>
                     </div>
                 </div>
 
@@ -35,7 +40,7 @@
                         Перетащите документ или изображение сюда или выберите файл
                     </div>
                     <input type="file" id="fileInput" style="display: none;"
-                           accept=".pdf,.docx,.txt,.md,.jpg,.jpeg,.png,.tiff,.bmp">
+                           accept=".pdf,.docx,.txt,.md,.jpg,.jpeg,.png,.tiff,.bmp,.mp3,.wav,.m4a,.ogg,.flac">
                     <button class="upload-btn" id="uploadBtn"
                             onclick="document.getElementById('fileInput').click()">
                         Выбрать файл

@@ -16,16 +16,28 @@ const CONFIG = {
     allowedTypes: [
         'text/plain', 'text/markdown', 'text/x-markdown',
         'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'image/jpeg', 'image/jpg', 'image/png', 'image/tiff', 'image/bmp'
+        'image/jpeg', 'image/jpg', 'image/png', 'image/tiff', 'image/bmp',
+        'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav', 'audio/mp4', 'audio/x-m4a',
+        'audio/ogg', 'audio/x-flac', 'audio/flac'
     ],
-    allowedExtensions: ['.txt', '.md', '.pdf', '.docx', '.jpg', '.jpeg', '.png', '.tiff', '.bmp'],
+    allowedExtensions: [
+        '.txt', '.md', '.pdf', '.docx',
+        '.jpg', '.jpeg', '.png', '.tiff', '.bmp',
+        '.mp3', '.wav', '.m4a', '.ogg', '.flac'
+    ],
     fileIcons: {
         '.pdf': '📕',
         '.docx': '📘',
         '.txt': '📝',
         '.md': '📋',
+        '.mp3': '🎵',
+        '.wav': '🎶',
+        '.m4a': '🎤',
+        '.ogg': '🎧',
+        '.flac': '🎼',
         'image': '🖼️',
-        'default': '📄'
+        'default': '📄',
+        'error': '❗',
     }
 };
 

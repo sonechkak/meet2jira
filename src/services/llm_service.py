@@ -62,6 +62,7 @@ class LlmService(Element):
                 cleaned_text = generated_text.strip()
                 logger.info(f"Получен ответ длиной {len(cleaned_text)} символов.")
                 return {
+                    "prompt": self.prompt,
                     "generated_response": cleaned_text,
                 }
             else:
