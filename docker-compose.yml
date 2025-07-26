@@ -57,7 +57,7 @@ services:
       - SQLALCHEMY_ECHO=true
       - PYTHONPATH=/app
     volumes:
-      - .:/app
+      - ./src:/app
 #      - ./backend/static:/app/backend/static
 #      - uv_cache:/tmp/uv-cache
     depends_on:
