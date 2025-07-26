@@ -15,47 +15,54 @@ logger = logging.getLogger(__name__)
 def extract_text_from_file(file_path: str, content_type: str) -> str:
     """Извлечь текст из файла в зависимости от его типа."""
 
-    # Проверяем, существует ли файл
-    if content_type == 'text/plain':
-        with open(file_path, 'r', encoding='utf-8') as f:
+    match content_type:
+
+        # Text files
+        case 'text/plain':
+           with open(file_path, 'r', encoding='utf-8') as f:
             return f.read()
 
-    # Image files
-    elif content_type in ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'] or content_type.startswith('image/'):
-        image = Image.open(file_path)
-        available_langs = pytesseract.get_languages(config='')
+        # Image files
+        case 'image/png' | 'image/jpeg' | 'image/jpg' | 'image/gif':
+            image = Image.open(file_path)
+            available_langs = pytesseract.get_languages(config='')
 
-        if 'rus' in available_langs and 'eng' in available_langs:
-            return pytesseract.image_to_string(image, lang='rus+eng')
-        elif 'eng' in available_langs:
-            return pytesseract.image_to_string(image, lang='eng')
-        else:
-            return pytesseract.image_to_string(image)
+            if 'rus' in available_langs and 'eng' in available_langs:
+                return pytesseract.image_to_string(image, lang='rus+eng')
+            elif 'eng' in available_langs:
+                return pytesseract.image_to_string(image, lang='eng')
+            else:
+                return pytesseract.image_to_string(image)
 
-    # Markdown files
-    elif content_type in ['text/x-markdown', 'text/markdown']:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            return f.read()
+        # Markdown files
+        case 'text/x-markdown' | 'text/markdown':
+            with open(file_path, 'r', encoding='utf-8') as f:
+                return f.read()
 
-    # PDF files
-    elif content_type == 'application/pdf':
-        with open(file_path, 'rb') as f:
-            reader = PdfReader(f)
+        # PDF files
+        case 'application/pdf':
+            with open(file_path, 'rb') as f:
+                reader = PdfReader(f)
+                text = ""
+                for page in reader.pages:
+                    text += page.extract_text()
+                return text
+
+        # Docx files
+        case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+            doc =  Document(file_path)
             text = ""
-            for page in reader.pages:
-                text += page.extract_text()
+            for paragraph in doc.paragraphs:
+                text += paragraph.text + "\n"
             return text
 
-    # Docx files
-    elif content_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
-        doc =  Document(file_path)
-        text = ""
-        for paragraph in doc.paragraphs:
-            text += paragraph.text + "\n"
-        return text
+        case 'text/html':
+            with open(file_path, 'r', encoding='utf-8') as f:
+                return f.read()
 
-    else:
-        raise ValueError(f"Unsupported file type: {content_type}")
+        # Unsupported file type
+        case _:
+            logger.error(f"Unsupported file type: {content_type}")
 
 
 def parse_single_task(task_prefix: str, block: str) -> Optional[ParsedTask]:
