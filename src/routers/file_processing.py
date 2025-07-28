@@ -7,8 +7,14 @@ from starlette import status
 from src.database import AsyncSessionLocal, get_db_session
 from src.pipeline.pipeline import process_document
 from src.schemas.jira.jira_schemas import JiraTaskRequest
-from src.schemas.jira.request_schemas import AcceptResultRequest, RejectResultRequest
+from src.schemas.processing.processing_schemas import (
+    ProcessingResponseSchema,
+    AcceptResultRequestSchema,
+    RejectProcessingResponseSchema,
+    RejectProcessingRequestSchema,
+)
 from src.services.jira_service import JiraService, get_jira_service
+
 
 processing_router = APIRouter(
     prefix="/file",
@@ -21,41 +27,52 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-@processing_router.post("/process")
-async def process_file(file: UploadFile = File(...), db: AsyncSessionLocal = Depends(get_db_session)):
+@processing_router.post("/process", response_model=ProcessingResponseSchema)
+async def process_file(
+        file: UploadFile = File(...),
+        db: AsyncSessionLocal = Depends(get_db_session)
+):
     """Endpoint to process a file."""
     try:
         summary = await process_document(file)
 
         if not summary:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Не удалось создать резюме для данного документа."
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="File not found"
             )
 
-        return {
-            "success": True,
-            "model": summary.get("model", "yandex-gpt"),
-            "document_name": file.filename,
-            "summary": summary,
-        }
+        return ProcessingResponseSchema(
+            success=True,
+            model="yandex-gpt",
+            document_name=file.filename,
+            summary=summary,
+            error=False
+        )
 
     except Exception as e:
-        return HTTPException(
-            status_code=500,
-            detail=str(e)
+        logger.error(f"Error processing file {file.filename}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error processing file: {str(e)}"
         )
 
 
 @processing_router.post("/reject")
-async def reject_file():
+async def reject_processing(
+        request: RejectProcessingRequestSchema,
+):
     """Endpoint to reject a file."""
-    return {"message": "File rejection endpoint is under construction."}
+
+    return RejectProcessingResponseSchema(
+        success=True,
+        message="Файл отклонен, обратная связь учтена"
+    )
 
 
 @processing_router.post("/accept")
 async def accept_file(
-    request: AcceptResultRequest,
+    request: AcceptResultRequestSchema,
     jira_service: JiraService = Depends(get_jira_service)
 ):
     """Cоздание задач в Jira."""
@@ -98,24 +115,4 @@ async def accept_file(
         raise HTTPException(
             status_code=500,
             detail=f"Ошибка при создании задач: {str(e)}"
-        )
-
-
-@processing_router.post("/file/reject")
-async def reject_feedback(request: RejectResultRequest):
-    """Обработка отрицательной обратной связи."""
-
-    try:
-        return {
-            "success": True,
-            "message": "Обратная связь учтена, поможет улучшить систему"
-        }
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Ошибка обработки отрицательной обратной связи: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Внутренняя ошибка сервера: {str(e)}"
         )
