@@ -1,6 +1,7 @@
 from operator import or_
-from select import select
 from typing import Optional
+
+from select import select
 
 from src.database import AsyncSessionLocal
 from src.models.user import User

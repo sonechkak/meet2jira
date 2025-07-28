@@ -1,17 +1,16 @@
 import logging
-import os
 
-from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
-from starlette import status
+from fastapi import APIRouter, UploadFile, File, Depends
 
 from src.database import AsyncSessionLocal, get_db_session
 from src.pipeline.pipeline import process_document
 from src.schemas.jira.jira_schemas import JiraTaskRequest
 from src.schemas.processing.processing_schemas import (
-    ProcessingResponseSchema,
     AcceptResultRequestSchema,
     RejectProcessingResponseSchema,
     RejectProcessingRequestSchema,
+    AcceptResultResponseSchema,
+    ProcessingResponseSchema,
 )
 from src.services.jira_service import JiraService, get_jira_service
 
@@ -27,46 +26,38 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-@processing_router.post("/process", response_model=ProcessingResponseSchema)
+@processing_router.post("/process")
 async def process_file(
         file: UploadFile = File(...),
         db: AsyncSessionLocal = Depends(get_db_session)
-):
+) -> ProcessingResponseSchema:
     """Endpoint to process a file."""
     try:
-        summary = await process_document(file)
+        pipeline_response = await process_document(file)
+        logger.info(f"Pipeline response: {pipeline_response}.")
 
-        if not summary:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="File not found"
-            )
-
-        return ProcessingResponseSchema(
-            success=True,
-            model="yandex-gpt",
-            document_name=file.filename,
-            summary=summary,
-            error=False
-        )
+        return pipeline_response
 
     except Exception as e:
-        logger.error(f"Error processing file {file.filename}: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error processing file: {str(e)}"
+        logger.error(f"Error processing file: {str(e)}")
+        return ProcessingResponseSchema(
+            status="error",
+            error=True,
+            error_message=str(e),
+            document_name=file.filename,
+            summary={}
         )
 
 
 @processing_router.post("/reject")
 async def reject_processing(
         request: RejectProcessingRequestSchema,
-):
+) -> RejectProcessingResponseSchema:
     """Endpoint to reject a file."""
 
     return RejectProcessingResponseSchema(
-        success=True,
-        message="Файл отклонен, обратная связь учтена"
+        status="success",
+        error=False
     )
 
 
@@ -74,7 +65,7 @@ async def reject_processing(
 async def accept_file(
     request: AcceptResultRequestSchema,
     jira_service: JiraService = Depends(get_jira_service)
-):
+) -> AcceptResultResponseSchema:
     """Cоздание задач в Jira."""
     try:
         jira_request = JiraTaskRequest(
@@ -87,32 +78,34 @@ async def accept_file(
         logger.debug(f"Jira result: {jira_result}")
 
         if not jira_result.success and not jira_result.created_tasks:
-            raise HTTPException(
-                status_code=400,
-                detail={
-                    "message": "Не удалось создать задачи в Jira",
-                    "errors": jira_result.errors
-                }
+            return AcceptResultResponseSchema(
+                status="error",
+                error=True,
+                error_message="Не удалось создать задачи в Jira. Проверьте текст задач и настройки проекта.",
+                result_id=request.result_id,
+                tasks_text=request.tasks_text,
+                project_key=request.project_key,
+                epic_key=request.epic_key
             )
-
-        return {
-            "success": True,
-            "message": "Результат принят и задачи созданы в Jira!",
-            "jira_result": {
-                "success": jira_result.success,
-                "created_tasks": [
-                    {
-                        "key": task["key"],
-                        "url": task["url"],
-                        "title": task["title"]
-                    } for task in jira_result.created_tasks
-                ],
-                "errors": jira_result.errors
-            }
-        }
+        return AcceptResultResponseSchema(
+            status="success",
+            error=False,
+            message="Результат принят и задачи созданы в Jira!",
+            result_id=request.result_id,
+            tasks_text=request.tasks_text,
+            project_key=request.project_key,
+            epic_key=request.epic_key,
+            jira_result=jira_result
+        )
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Ошибка при создании задач: {str(e)}"
+        logger.error(f"Error accepting file: {str(e)}")
+        return AcceptResultResponseSchema(
+            status="error",
+            error=True,
+            error_message=str(e),
+            result_id=request.result_id,
+            tasks_text=request.tasks_text,
+            project_key=request.project_key,
+            epic_key=request.epic_key
         )

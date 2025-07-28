@@ -1,4 +1,10 @@
+import logging
 from typing import Any
+
+
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 class Element:
@@ -28,11 +34,22 @@ class Pipeline(Element):
         results = []
         for element in self.elements:
             result = element.run()
-            results.append(result)
-        return {'results': results}
 
-    def __str__(self):
-        return f'Pipeline: {self.model} with elements {len(self.elements)}'
+            # For Pydantic models, use model_dump or dict to convert to dict
+            if hasattr(result, "model_dump"):
+                results.append(result.model_dump())
+            elif hasattr(result, "dict"):
+                results.append(result.dict())
+            else:
+                results.append(result)
+
+        return {
+            "status": "success",
+            "results": results,
+            "model_name": self.model,
+            "error": False,
+            "error_message": None
+        }
 
 
 class Tool:

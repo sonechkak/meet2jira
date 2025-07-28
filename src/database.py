@@ -9,7 +9,6 @@ from sqlalchemy.orm import DeclarativeBase
 
 from src.settings.config import settings
 
-
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 

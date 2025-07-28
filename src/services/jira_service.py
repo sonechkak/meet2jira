@@ -1,17 +1,19 @@
 import logging
 import os
-import re
-from dataclasses import dataclass
-from typing import List, Optional, Dict, Any
+from typing import Optional
 
 from fastapi import HTTPException
 from jira import JIRA
 
 from src.models.parsed_task import ParsedTask
-from src.schemas.jira.jira_schemas import JiraTaskRequest, JiraTaskResponse
+from src.schemas.jira.jira_schemas import (
+    JiraTaskRequest,
+    ProcessTaskResponseSchema,
+    CreateJiraTaskResponseSchema
+)
 from src.utils.file_utils import parse_tasks_from_text
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
@@ -54,10 +56,10 @@ class JiraService:
             projects = self.jira.projects()
             project_keys = [p.key for p in projects[:5]]  # Показываем первые 5
             return ', '.join(project_keys)
-        except:
+        except Exception as e:
             return "не удалось получить список"
 
-    def create_jira_task(self, task: ParsedTask, project_key: str, epic_key: Optional[str] = None) -> Dict[str, Any]:
+    def create_jira_task(self, task: ParsedTask, project_key: str, epic_key: Optional[str] = None) -> CreateJiraTaskResponseSchema:
         """Создание задачи в Jira."""
 
         try:
@@ -65,12 +67,10 @@ class JiraService:
             try:
                 project = self.jira.project(project_key)
             except Exception as e:
-                return {
-                    'success': False,
-                    'error': f'Проект "{project_key}" не найден. Доступные проекты: {self._get_available_projects()}',
-                    'title': task.title
-                }
-
+                return CreateJiraTaskResponseSchema(
+                    status="error",
+                    error=f"Проект {project_key} не найден. Доступные проекты: {self._get_available_projects()}"
+                )
             # Формируем описание задачи
             description_parts = [
                 # f"*Исполнитель:* {task.assignee}",
@@ -123,22 +123,21 @@ class JiraService:
             # Создаем задачу
             new_issue = self.jira.create_issue(fields=issue_dict)
 
-            return {
-                'success': True,
-                'key': new_issue.key,
-                'url': f"{self.server_url}/browse/{new_issue.key}",
-                'title': task.title
-            }
+            return CreateJiraTaskResponseSchema(
+                status="success",
+                title=task.title,
+                task_id=new_issue.key,
+                url=f"{self.server_url}/browse/{new_issue.key}"
+            )
 
         except Exception as e:
             error_msg = str(e)
-            return {
-                'success': False,
-                'error': error_msg,
-                'title': task.title
-            }
+            return CreateJiraTaskResponseSchema(
+                status="error",
+                error=f"Ошибка при создании задачи: {error_msg}"
+            )
 
-    async def process_tasks_to_jira(self, request: JiraTaskRequest) -> JiraTaskResponse:
+    async def process_tasks_to_jira(self, request: JiraTaskRequest) -> ProcessTaskResponseSchema:
         """
         Основной метод для обработки текста и создания задач в Jira
         """
@@ -147,12 +146,12 @@ class JiraService:
             tasks = parse_tasks_from_text(request.tasks_text)
 
             if not tasks:
-                return JiraTaskResponse(
-                    success=False,
+                return ProcessTaskResponseSchema(
+                    status="error",
                     created_tasks=[],
-                    errors=["Не удалось найти задачи в тексте"]
+                    error=True,
+                    error_message="Не удалось распознать задачи в тексте. Убедитесь, что текст содержит задачи в формате: 'ID: Название задачи'."
                 )
-
             created_tasks = []
             errors = []
 
@@ -173,17 +172,17 @@ class JiraService:
                 else:
                     errors.append(f"Задача '{result['title']}': {result['error']}")
 
-            return JiraTaskResponse(
-                success=len(created_tasks) > 0,
-                created_tasks=created_tasks,
-                errors=errors
+            return ProcessTaskResponseSchema(
+                status="success",
+                created_tasks=created_tasks
             )
 
         except Exception as e:
-            return JiraTaskResponse(
-                success=False,
+            return ProcessTaskResponseSchema(
+                status="error",
                 created_tasks=[],
-                errors=[f"Общая ошибка: {str(e)}"]
+                error=True,
+                error_message=f"Ошибка при обработке задач: {str(e)}"
             )
 
 

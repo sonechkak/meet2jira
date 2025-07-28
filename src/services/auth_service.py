@@ -1,10 +1,10 @@
 import logging
 import re
 from datetime import datetime
-from select import select
 from typing import Optional
 
 import bcrypt
+from select import select
 
 from src.database import AsyncSessionLocal
 from src.models.user import User

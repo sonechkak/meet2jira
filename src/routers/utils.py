@@ -3,9 +3,10 @@ import os
 
 from fastapi import APIRouter, Request, Depends
 
+from src.schemas.debug.utils_schemas import JiraInfoResponseSchema, CreateSimpleTaskSchema
 from src.services.jira_service import get_jira_service, JiraService
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
@@ -25,7 +26,7 @@ def list_endpoints(request: Request):
 
 
 @utils_router.get('/debug_jira_info/')
-async def debug_jira_info():
+async def debug_jira_info() -> JiraInfoResponseSchema:
     """
     Отладочная информация о Jira
     """
@@ -53,40 +54,45 @@ async def debug_jira_info():
             except Exception as e:
                 issue_types = [f"Ошибка получения типов: {str(e)}"]
 
-        return {
-            "success": True,
-            "current_user": current_user,
-            "total_projects": len(projects),
-            "projects": [
-                {
-                    "key": p.key,
-                    "name": p.name,
-                    "id": p.id,
-                    "projectTypeKey": getattr(p, 'projectTypeKey', 'unknown')
-                }
-                for p in projects
-            ],
-            "sample_issue_types": issue_types,
-            "jira_server": os.getenv('JIRA_API_URL')
-        }
+        return JiraInfoResponseSchema(
+            status="success",
+            current_user=current_user.displayName,
+            total_projects=len(projects),
+            projects=[{"key": p.key, "name": p.name} for p in projects],
+            sample_issue_types=issue_types,
+            jira_server=os.getenv('JIRA_API_URL'),
+            project_key=os.getenv('JIRA_DEFAULT_PROJECT_KEY', 'LEARNJIRA'),
+            epic_key=os.getenv('JIRA_EPIC_KEY'),
+            epic_name=os.getenv('JIRA_EPIC_NAME'),
+            epic_url=os.getenv('JIRA_EPIC_URL')
+        )
 
     except Exception as e:
-        return {
-            "success": False,
-            "error": str(e),
-            "jira_server": os.getenv('JIRA_API_URL'),
-            "username": os.getenv("JIRA_API_USER")
-        }
+        return JiraInfoResponseSchema(
+            status="error",
+            error=True,
+            error_message=str(e),
+            project_key=os.getenv('JIRA_DEFAULT_PROJECT_KEY', 'LEARNJIRA'),
+            current_user="Не удалось получить информацию",
+            total_projects=0,
+            projects=[],
+            sample_issue_types=[],
+            jira_server=os.getenv('JIRA_API_URL'),
+            epic_key=os.getenv('JIRA_EPIC_KEY'),
+            epic_name=os.getenv('JIRA_EPIC_NAME'),
+            epic_url=os.getenv('JIRA_EPIC_URL')
+        )
 
 
 @utils_router.post("/debug/create-simple-task")
 async def create_simple_task(
         project_key: str = "LEARNJIRA",
         jira_service: JiraService = Depends(get_jira_service)
-):
+) -> CreateSimpleTaskSchema:
     """
     Создание простой тестовой задачи
     """
+
     try:
         issue_dict = {
             'project': {'key': project_key},
@@ -101,18 +107,15 @@ async def create_simple_task(
         # Создаем задачу
         new_issue = jira_service.jira.create_issue(fields=issue_dict)
 
-        return {
-            "success": True,
-            "key": new_issue.key,
-            "url": f"{jira_service.server_url}/browse/{new_issue.key}",
-            "message": "Тестовая задача создана успешно!",
-            "summary": issue_dict['summary']
-        }
+        return CreateSimpleTaskSchema(
+            status="success",
+            task_id=new_issue.key,
+            url=f"{jira_service.server_url}/browse/{new_issue.key}",
+        )
 
     except Exception as e:
-        return {
-            "success": False,
-            "error": str(e),
-            "project_key": project_key,
-            "attempted_structure": issue_dict
-        }
+        return CreateSimpleTaskSchema(
+            status="error",
+            error=True,
+            error_message=str(e)
+        )

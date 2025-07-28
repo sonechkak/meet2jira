@@ -1,9 +1,9 @@
-import httpx as requests
 import logging
-from typing import Dict
+
+import httpx as requests
 
 from src.pipeline.elements.base import Element
-
+from src.schemas.llm.llm_service_schemas import LLMServiceResponseSchema
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -16,18 +16,20 @@ class LlmService(Element):
             self,
             prompt: str,
             model="yandex-gpt",
-            base_url="http://localhost:11434") -> None:
+            base_url="http://localhost:11434"
+    ) -> None:
         """Инициализация сервиса LLM."""
+
         logger.debug("Инициализация LLM сервиса с моделью %s и базовым URL %s", model, base_url)
         super().__init__(model=model, tools=[], prompt="", obj=None)
         self.prompt = prompt
         self.base_url = base_url
         self.api_url = f"{base_url}/api/generate"
 
-    def run(self) -> Dict[str, str]:
+    def run(self) -> LLMServiceResponseSchema:
         """Вызов API model для получения ответа на запрос."""
         try:
-            logger.debug(f"Вызов модели {self.model}")
+            logger.info(f"Вызов модели {self.model}")
 
             payload = {
                 "model": self.model,
@@ -40,7 +42,7 @@ class LlmService(Element):
                 }
             }
 
-            logger.debug(f"Отправка запроса к модели: {self.api_url}")
+            logger.info(f"Отправка запроса к модели: {self.api_url}")
             response = requests.post(
                 self.api_url,
                 json=payload,
@@ -52,28 +54,35 @@ class LlmService(Element):
 
             logger.debug("Запрос отправлен, ожидаем ответа...")
             response.raise_for_status()  # Проверка на ошибки HTTP
-            logger.debug("Ответ получен успешно.")
+            logger.info("Ответ получен успешно.")
 
             response_data = response.json()
-            logger.debug("Обработка ответа от модели...")
             generated_text = response_data.get("response", "")
 
             if generated_text and generated_text.strip():
                 cleaned_text = generated_text.strip()
                 logger.debug(f"Получен ответ длиной {len(cleaned_text)} символов.")
-                return {
-                    "generated_response": cleaned_text,
-                }
+                logger.debug("Ответ успешно обработан.")
+                return LLMServiceResponseSchema(
+                    status="success",
+                    response_text=cleaned_text,
+                    response_data=response_data,
+                    model_name=self.model
+                )
             else:
-                logger.warning("Модель вернула пустой ответ")
-                return {
-                    "error": "Модель вернула пустой ответ",
-                    "response": ""
-                }
+                logger.error("Модель вернула пустой ответ.")
+                return LLMServiceResponseSchema(
+                    status="error",
+                    error=True,
+                    error_message="Модель вернула пустой ответ. Проверьте настройки модели и запрос.",
+                    response_text=""
+                )
 
         except Exception as e:
             logger.error(f"Ошибка при вызове API model: {str(e)}")
-            return {
-                "error": f"Ошибка при вызове API model: {str(e)}",
-                "response": ""
-            }
+            return LLMServiceResponseSchema(
+                status="error",
+                error=True,
+                error_message=str(e),
+                response_text=""
+            )

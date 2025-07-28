@@ -32,7 +32,11 @@ async def login(
         )
 
         if not user:
-            return {"message": "Invalid username or password."}
+            return LoginResponseSchema(
+                status="error",
+                error=True,
+                error_message="Invalid credentials or user not found."
+            )
 
         return LoginResponseSchema(
             status="success",
@@ -44,25 +48,37 @@ async def login(
         )
 
     except Exception as e:
-        return {"message": f"Login failed: {str(e)}."}
+        return LoginResponseSchema(
+            status="error",
+            error=True,
+            error_message=f"Login failed: {str(e)}"
+        )
 
 
 @auth_router.post("/register")
 async def register(
     user_data: UserCreateSchema,
     user_repository: AuthRepository = Depends(get_auth_repository),
-) -> UserResponseSchema | dict:
+) -> UserResponseSchema :
     """Register endpoint for new users."""
     try:
         if user_data.username:
             existing_user = await user_repository.get_user_by_username(user_data.username)
             if existing_user:
-                return {"message": "Username already exists"}
+                return UserResponseSchema(
+                    status="error",
+                    error=True,
+                    error_message="Username already exists."
+                )
 
         if user_data.email:
             existing_user = await user_repository.get_user_by_email(user_data.email)
             if existing_user:
-                return {"message": "Email already exists"}
+                return UserResponseSchema(
+                    status="error",
+                    error=True,
+                    error_message="Email already exists."
+                )
 
         new_user = await user_repository.create(obj_in=user_data)
 
@@ -75,4 +91,8 @@ async def register(
         )
 
     except Exception as e:
-        return {"message": f"Registration failed: {str(e)}."}
+        return UserResponseSchema(
+            status="error",
+            error=True,
+            error_message=f"Registration failed: {str(e)}"
+        )

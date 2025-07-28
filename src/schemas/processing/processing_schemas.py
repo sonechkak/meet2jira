@@ -1,22 +1,39 @@
-from pydantic import BaseModel
+from typing import Union, Optional, List, Dict, Any
+
+from pydantic import BaseModel, Field
+
 
 # Response Schemas
 class ProcessingResponseSchema(BaseModel):
-    """Schema for the response of a processing operation."""
-    success: bool
-    model: str
+    status: str
+    error: bool
+    error_message: Optional[str] = None
+    model: str = "default_model"
     document_name: str
-    summary: dict
-    error: bool = False
+    summary: Dict[str, Any] = Field(default_factory=dict)
+
 
 class RejectProcessingResponseSchema(BaseModel):
     """Schema for the response when a file is rejected."""
-    success: bool
-    message: str
+    status: str = "success"
+    error: bool = False
+    error_message: str = None
+
+
+class AcceptResultResponseSchema(BaseModel):
+    """Schema for the response when a result is accepted."""
+    status: str = "success"
+    error: bool = False
+    error_message: str = None
+    message: str = None
+    result_id: str = None
+    tasks_text: str = None
+    project_key: str = "LEARNJIRA"
+    epic_key: str = None
+    jira_result: dict = None
 
 
 # Request Schemas
-
 class RejectProcessingRequestSchema(BaseModel):
     """Schema for the request to reject a file."""
     success: bool
@@ -34,4 +51,3 @@ class RejectResultRequestSchema(BaseModel):
     result_id: str
     tasks_text: str
     reason: str = "Результат отклонен пользователем"
-

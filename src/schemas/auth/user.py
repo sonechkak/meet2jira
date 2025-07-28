@@ -18,9 +18,11 @@ class UserUpdateSchema(BaseModel):
 
 
 class UserResponseSchema(BaseModel):
-    status: str
-    id: int
-    username: str
+    status: str = "success"
+    id: int = None
+    username: str = None
     email: Optional[str] = None
     full_name: Optional[str] = None
-    is_active: bool
+    is_active: bool = True
+    error: bool = False
+    error_message: Optional[str] = None

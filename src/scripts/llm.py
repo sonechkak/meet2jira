@@ -1,6 +1,6 @@
 import logging
-import openai
 
+import openai
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)

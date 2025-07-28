@@ -54,7 +54,7 @@ class Settings(BaseSettings):
     )
 
     # Logging
-    log_level: str = Field(default="INFO", description="Logging level")
+    log_level: str = Field(default="DEBUG", description="Logging level")
     log_format: str = Field(default="json", description="Log format (json/text)")
 
     # Admin Fastadmin

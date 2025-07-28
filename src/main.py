@@ -11,6 +11,7 @@ from src.database import (
     create_db_and_tables,
     close_db_connection
 )
+from src.schemas.main.root_schemas import RootResponseSchema
 from src.settings.config import settings
 
 # Configure logging
@@ -112,21 +113,21 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 @app.get("/", summary="Root Endpoint", tags=["Root"])
-async def root():
+async def root() -> RootResponseSchema:
     db_status = await create_db_and_tables()
-    return {
-        "message": "Welcome to the Meet2Jira API!",
-        "version": settings.app_version,
-        "environment": settings.environment,
-        "database_status": "connected" if db_status else "disconnected",
-        "database_uri": settings.SQLALCHEMY_DATABASE_URI,
-        "docs_url": settings.docs_url,
-        "redoc_url": settings.redoc_url,
-        "api_prefix": settings.api_prefix,
-    }
+    return RootResponseSchema(
+        status="success",
+        message="Welcome to Meet2Jira API",
+        version=settings.app_version,
+        environment=settings.environment,
+        database_status="connected" if db_status else "disconnected",
+        database_uri=settings.database_uri,
+        docs_url=settings.docs_url,
+        redoc_url=settings.redoc_url,
+        api_prefix=settings.API_PREFIX,
+    )
 
 # Import admin
-import src.admin.admin
 
 # Include routers
 from src.routers.auth import auth_router

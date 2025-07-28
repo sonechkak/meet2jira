@@ -20,7 +20,16 @@ class JiraTaskRequest(BaseModel):
     epic_key: Optional[str] = None
 
 
-class JiraTaskResponse(BaseModel):
-    success: bool
-    created_tasks: List[Dict[str, str]]
-    errors: List[str]
+class ProcessTaskResponseSchema(BaseModel):
+    status: str = "success"
+    created_tasks: List[Dict[str, str]] = []
+    error: bool = False
+    error_message: str = None
+
+
+class CreateJiraTaskResponseSchema(BaseModel):
+    status: str = "success"
+    error: Optional[str] = None
+    title: Optional[str] = None
+    task_id: Optional[str] = None
+    url: Optional[str] = None

@@ -1,19 +1,16 @@
 import logging
 import os
 import re
-import shutil
-import tempfile
 import time
 import wave
+from typing import List, Optional
 
 import pytesseract
 import speech_recognition as sr
-from pydub import AudioSegment
-from pydub.utils import which
-from pypdf import PdfReader
-from docx import Document
 from PIL import Image
-from typing import List, Optional
+from docx import Document
+from pydub import AudioSegment
+from pypdf import PdfReader
 
 from src.models.parsed_task import ParsedTask
 from src.utils.files.audio.get_audio_duration import get_audio_duration
