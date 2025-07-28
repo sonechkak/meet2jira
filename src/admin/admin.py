@@ -34,19 +34,19 @@ class UserAdmin(SqlAlchemyModelAdmin):
             user = result.first()
 
             if not user:
-                logger.info(f"❌ User '{username}' not found or not authorized")
+                logger.debug(f"❌ User '{username}' not found or not authorized")
                 return None
 
-            logger.info(f"✅ User found: {user.username} (ID: {user.id})")
+            logger.debug(f"✅ User found: {user.username} (ID: {user.id})")
 
             password_valid = bcrypt.checkpw(password.encode(), user.hash_password.encode())
-            logger.info(f"🔑 Password validation: {password_valid}")
+            logger.debug(f"🔑 Password validation: {password_valid}")
 
             if not password_valid:
-                logger.info(f"❌ Invalid password for: {username}")
+                logger.debug(f"❌ Invalid password for: {username}")
                 return None
 
-            logger.info(f"✅ Authentication successful: {username}")
+            logger.debug(f"✅ Authentication successful: {username}")
             return user.id
 
     async def change_password(self, id: uuid.UUID | int, password: str) -> None:

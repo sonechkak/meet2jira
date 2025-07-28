@@ -79,7 +79,7 @@ class AuthService:
             await session.commit()
             await session.refresh(user)
 
-            logger.info(
+            logger.debug(
                 f"Created new user: {user.username or user.id}"
             )
             return user
@@ -113,11 +113,11 @@ class AuthService:
             await session.commit()
             await session.refresh(user)
 
-            logger.info(f"Updated user: {user.username or user.id}")
+            logger.debug(f"Updated user: {user.username or user.id}")
             return user
 
         except Exception as e:
-            logger.error(f"Error updating user {user_id}: {e!s}")
+            logger.debug(f"Error updating user {user_id}: {e!s}")
             await session.rollback()
             return None
 
@@ -145,7 +145,7 @@ class AuthService:
             if not user.is_active:
                 logger.error(f"User is inactive: {identifier}")
                 return None
-            logger.info(f"User authenticated: {user.username or user.id}")
+            logger.debug(f"User authenticated: {user.username or user.id}")
             return user
 
         except Exception as e:

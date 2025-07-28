@@ -44,7 +44,7 @@ async def run_migrations():
 
         # Применяем миграции
         command.upgrade(alembic_cfg, "head")
-        logging.info("Migrations applied successfully.")
+        logging.debug("Migrations applied successfully.")
         return True
     except Exception as e:
         logger.error("Failed to apply migrations: %s", e)
@@ -56,28 +56,28 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator:
     """
     Runs events before application startup and after application shutdown.
     """
-    logger.info("Starting Meet2Jira App...")
+    logger.debug("Starting Meet2Jira App...")
 
     await create_db_and_tables()
-    logger.info("Database tables created/verified.")
+    logger.debug("Database tables created/verified.")
 
     # # Initialize Name service
     # try:
     #     name_service = await get_name_service()
     #     if name_service.bot:
-    #         logger.info("Name initialized successfully")
+    #         logger.debug("Name initialized successfully")
     #     else:
-    #         logger.warning("Name not initialized (token may be missing)")
+    #         logger.debug("Name not initialized (token may be missing)")
     # except Exception as e:
     #     logger.error(f"Failed to initialize Name service: {e}")
 
     yield
 
     # Shutdown
-    logger.info("Shutting down Meet2Jira App...")
+    logger.debug("Shutting down Meet2Jira App...")
 
     await close_db_connection()
-    logger.info("Database connection closed.")
+    logger.debug("Database connection closed.")
 
 
 app = FastAPI(

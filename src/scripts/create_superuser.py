@@ -13,14 +13,14 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
 async def create_superuser():
     """Создание суперпользователя"""
 
-    logger.info("🔐 Creating superuser for FastAdmin...")
+    logger.debug("🔐 Creating superuser for FastAdmin...")
 
     # Данные по умолчанию
     username = "admin"
@@ -28,7 +28,7 @@ async def create_superuser():
     password = "admin123"
     full_name = "Administrator"
 
-    logger.info(f"Creating user: {username} / {email}")
+    logger.debug(f"Creating user: {username} / {email}")
 
     # Хешируем пароль
     hash_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -51,15 +51,15 @@ async def create_superuser():
             session.add(superuser)
             await session.commit()
 
-            logger.info(f"✅ Superuser '{username}' created successfully!")
-            logger.info(f"📧 Email: {email}")
-            logger.info(f"🔑 Password: {password}")
-            logger.info(f"🌐 Admin URL: http://localhost:8000/admin")
+            logger.debug(f"✅ Superuser '{username}' created successfully!")
+            logger.debug(f"📧 Email: {email}")
+            logger.debug(f"🔑 Password: {password}")
+            logger.debug(f"🌐 Admin URL: http://localhost:8000/admin")
 
         except Exception as e:
             logger.error(f"❌ Error creating superuser: {e}")
             # Возможно пользователь уже существует
-            logger.info("User might already exist. Try different credentials.")
+            logger.debug("User might already exist. Try different credentials.")
 
 
 if __name__ == "__main__":

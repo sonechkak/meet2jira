@@ -17,7 +17,7 @@ processing_router = APIRouter(
 )
 
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
@@ -67,7 +67,7 @@ async def accept_file(
         )
 
         jira_result = await jira_service.process_tasks_to_jira(jira_request)
-        logger.info(f"Jira result: {jira_result}")
+        logger.debug(f"Jira result: {jira_result}")
 
         if not jira_result.success and not jira_result.created_tasks:
             raise HTTPException(

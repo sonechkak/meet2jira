@@ -11,7 +11,7 @@ from src.tools.prompt_generator import PromptGenerator
 from src.utils.file_utils import extract_text_from_file
 from ..services.jira_service import JiraService
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 

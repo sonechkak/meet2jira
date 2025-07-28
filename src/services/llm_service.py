@@ -5,7 +5,7 @@ from typing import Dict
 from src.pipeline.elements.base import Element
 
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
@@ -18,7 +18,7 @@ class LlmService(Element):
             model="yandex-gpt",
             base_url="http://localhost:11434") -> None:
         """Инициализация сервиса LLM."""
-        logger.info("Инициализация LLM сервиса с моделью %s и базовым URL %s", model, base_url)
+        logger.debug("Инициализация LLM сервиса с моделью %s и базовым URL %s", model, base_url)
         super().__init__(model=model, tools=[], prompt="", obj=None)
         self.prompt = prompt
         self.base_url = base_url
@@ -27,7 +27,7 @@ class LlmService(Element):
     def run(self) -> Dict[str, str]:
         """Вызов API model для получения ответа на запрос."""
         try:
-            logger.info(f"Вызов модели {self.model}")
+            logger.debug(f"Вызов модели {self.model}")
 
             payload = {
                 "model": self.model,
@@ -40,7 +40,7 @@ class LlmService(Element):
                 }
             }
 
-            logger.info(f"Отправка запроса к модели: {self.api_url}")
+            logger.debug(f"Отправка запроса к модели: {self.api_url}")
             response = requests.post(
                 self.api_url,
                 json=payload,
@@ -50,19 +50,18 @@ class LlmService(Element):
                 timeout=120
             )
 
-            logger.info("Запрос отправлен, ожидаем ответа...")
+            logger.debug("Запрос отправлен, ожидаем ответа...")
             response.raise_for_status()  # Проверка на ошибки HTTP
-            logger.info("Ответ получен успешно.")
+            logger.debug("Ответ получен успешно.")
 
             response_data = response.json()
-            logger.info("Обработка ответа от модели...")
+            logger.debug("Обработка ответа от модели...")
             generated_text = response_data.get("response", "")
 
             if generated_text and generated_text.strip():
                 cleaned_text = generated_text.strip()
-                logger.info(f"Получен ответ длиной {len(cleaned_text)} символов.")
+                logger.debug(f"Получен ответ длиной {len(cleaned_text)} символов.")
                 return {
-                    "prompt": self.prompt,
                     "generated_response": cleaned_text,
                 }
             else:

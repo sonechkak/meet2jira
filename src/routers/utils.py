@@ -95,8 +95,8 @@ async def create_simple_task(
             'issuetype': {'name': 'Task'}
         }
 
-        logger.info(f"Пытаемся создать задачу в проекте: {project_key}")
-        logger.info(f"Структура задачи: {issue_dict}")
+        logger.debug(f"Пытаемся создать задачу в проекте: {project_key}")
+        logger.debug(f"Структура задачи: {issue_dict}")
 
         # Создаем задачу
         new_issue = jira_service.jira.create_issue(fields=issue_dict)

@@ -90,7 +90,7 @@ def extract_text_from_file(file_path: str, content_type: str) -> str:
                         sample_rate = wav_file.getframerate()
                         duration = frames / float(sample_rate)
 
-                        logger.info(f"WAV файл: {duration:.1f}сек, {sample_rate}Hz")
+                        logger.debug(f"WAV файл: {duration:.1f}сек, {sample_rate}Hz")
 
                         if duration > 50:
                             # Загружаем через pydub для разбивки
@@ -107,7 +107,7 @@ def extract_text_from_file(file_path: str, content_type: str) -> str:
                     # Конвертируем в WAV для обработки
                     audio_segment = AudioSegment.from_file(file_path, format=file_ext[1:])
                     duration = len(audio_segment) / 1000.0
-                    logger.info(f"Длинный аудиофайл: {duration:.1f}сек. Разбиваем на части...")
+                    logger.debug(f"Длинный аудиофайл: {duration:.1f}сек. Разбиваем на части...")
                     # Оптимизируем параметры
                     audio_segment = audio_segment.set_frame_rate(16000)
                     audio_segment = audio_segment.set_channels(1)
@@ -118,7 +118,7 @@ def extract_text_from_file(file_path: str, content_type: str) -> str:
                     chunks = split_audio_chunks(audio_segment, max_duration_seconds=50)
                     total_chunks = len(chunks)
 
-                    print(f"Файл разбит на {total_chunks} частей")
+                    logger.debug(f"Файл разбит на {total_chunks} частей")
 
                     # Обрабатываем каждую часть
                     all_text = []
