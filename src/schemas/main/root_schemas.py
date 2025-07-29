@@ -12,4 +12,3 @@ class RootResponseSchema(BaseModel):
     database_uri: str = None
     docs_url: str = None
     redoc_url: str = None
-    api_prefix: str = None

@@ -121,10 +121,9 @@ async def root() -> RootResponseSchema:
         version=settings.app_version,
         environment=settings.environment,
         database_status="connected" if db_status else "disconnected",
-        database_uri=settings.database_uri,
+        database_uri=settings.SQLALCHEMY_DATABASE_URI,
         docs_url=settings.docs_url,
         redoc_url=settings.redoc_url,
-        api_prefix=settings.API_PREFIX,
     )
 
 # Import admin
