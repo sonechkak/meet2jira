@@ -163,18 +163,24 @@ class JiraService:
                     epic_key=request.epic_key
                 )
 
-                if result['success']:
+                if result.status == "success":
+                    # Добавляем только ключ, URL и заголовок задачи
                     created_tasks.append({
-                        'key': result['key'],
-                        'url': result['url'],
-                        'title': result['title']
+                        "task_id": result.task_id,
+                        "title": result.title,
+                        "url": result.url
                     })
                 else:
-                    errors.append(f"Задача '{result['title']}': {result['error']}")
+                    errors.append({
+                        "task_id": task.task_id,
+                        "error": result.error
+                    })
 
             return ProcessTaskResponseSchema(
-                status="success",
-                created_tasks=created_tasks
+                status="success" if not errors else "partial",
+                created_tasks=created_tasks,
+                error=bool(errors),
+                error_message="Некоторые задачи не были созданы в Jira." if errors else "Все задачи успешно созданы."
             )
 
         except Exception as e:

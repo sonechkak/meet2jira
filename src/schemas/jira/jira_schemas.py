@@ -24,7 +24,7 @@ class ProcessTaskResponseSchema(BaseModel):
     status: str = "success"
     created_tasks: List[Dict[str, str]] = []
     error: bool = False
-    error_message: str = None
+    error_message: str = ""
 
 
 class CreateJiraTaskResponseSchema(BaseModel):

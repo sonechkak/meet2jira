@@ -75,9 +75,9 @@ async def accept_file(
         )
 
         jira_result = await jira_service.process_tasks_to_jira(jira_request)
-        logger.debug(f"Jira result: {jira_result}")
+        logger.info(f"Jira result: {jira_result}")
 
-        if not jira_result.success and not jira_result.created_tasks:
+        if not jira_result.created_tasks:
             return AcceptResultResponseSchema(
                 status="error",
                 error=True,
@@ -85,7 +85,8 @@ async def accept_file(
                 result_id=request.result_id,
                 tasks_text=request.tasks_text,
                 project_key=request.project_key,
-                epic_key=request.epic_key
+                epic_key=request.epic_key,
+                jira_result=jira_result.dict(),
             )
         return AcceptResultResponseSchema(
             status="success",
@@ -95,7 +96,7 @@ async def accept_file(
             tasks_text=request.tasks_text,
             project_key=request.project_key,
             epic_key=request.epic_key,
-            jira_result=jira_result
+            jira_result=jira_result.dict()
         )
 
     except Exception as e:
@@ -107,5 +108,6 @@ async def accept_file(
             result_id=request.result_id,
             tasks_text=request.tasks_text,
             project_key=request.project_key,
-            epic_key=request.epic_key
+            epic_key=request.epic_key,
+            jira_result=jira_result.dict(),
         )
