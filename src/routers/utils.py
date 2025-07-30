@@ -5,6 +5,7 @@ from fastapi import APIRouter, Request, Depends
 
 from src.schemas.debug.utils_schemas import JiraInfoResponseSchema, CreateSimpleTaskSchema
 from src.services.jira_service import get_jira_service, JiraService
+from src.settings.config import settings
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -60,11 +61,11 @@ async def debug_jira_info() -> JiraInfoResponseSchema:
             total_projects=len(projects),
             projects=[{"key": p.key, "name": p.name} for p in projects],
             sample_issue_types=issue_types,
-            jira_server=os.getenv('JIRA_API_URL'),
-            project_key=os.getenv('JIRA_DEFAULT_PROJECT_KEY', 'LEARNJIRA'),
-            epic_key=os.getenv('JIRA_EPIC_KEY'),
-            epic_name=os.getenv('JIRA_EPIC_NAME'),
-            epic_url=os.getenv('JIRA_EPIC_URL')
+            jira_server=settings.JIRA_SERVER_URL,
+            project_key=settings.JIRA_DEFAULT_PROJECT_KEY,
+            epic_key=settings.JIRA_EPIC_KEY,
+            epic_name=settings.JIRA_EPIC_NAME,
+            epic_url=settings.JIRA_EPIC_URL,
         )
 
     except Exception as e:
@@ -72,15 +73,15 @@ async def debug_jira_info() -> JiraInfoResponseSchema:
             status="error",
             error=True,
             error_message=str(e),
-            project_key=os.getenv('JIRA_DEFAULT_PROJECT_KEY', 'LEARNJIRA'),
             current_user="Не удалось получить информацию",
             total_projects=0,
             projects=[],
             sample_issue_types=[],
-            jira_server=os.getenv('JIRA_API_URL'),
-            epic_key=os.getenv('JIRA_EPIC_KEY'),
-            epic_name=os.getenv('JIRA_EPIC_NAME'),
-            epic_url=os.getenv('JIRA_EPIC_URL')
+            jira_server=settings.JIRA_SERVER_URL,
+            project_key=settings.JIRA_DEFAULT_PROJECT_KEY,
+            epic_key=settings.JIRA_EPIC_KEY,
+            epic_name=settings.JIRA_EPIC_NAME,
+            epic_url=settings.JIRA_EPIC_URL,
         )
 
 
@@ -110,7 +111,7 @@ async def create_simple_task(
         return CreateSimpleTaskSchema(
             status="success",
             task_id=new_issue.key,
-            url=f"{jira_service.server_url}/browse/{new_issue.key}",
+            url=settings.JIRA_EPIC_URL,
         )
 
     except Exception as e:

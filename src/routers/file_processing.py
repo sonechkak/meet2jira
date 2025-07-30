@@ -4,7 +4,7 @@ from fastapi import APIRouter, UploadFile, File, Depends, Request
 
 from src.database import AsyncSessionLocal, get_db_session
 from src.handlers.webhooks.handle_file_ready_event import handle_file_ready_event
-from src.handlers.webhooks.handle_file_upload_event import handle_file_upload_event
+from src.handlers.webhooks.handle_file_upload import handle_file_upload
 from src.pipeline.pipeline import process_document
 from src.schemas.jira.jira_schemas import JiraTaskRequest
 from src.schemas.processing.processing_schemas import (
@@ -15,7 +15,6 @@ from src.schemas.processing.processing_schemas import (
     ProcessingResponseSchema,
 )
 from src.services.jira_service import JiraService, get_jira_service
-from src.services.llm_service import LlmService
 
 processing_router = APIRouter(
     prefix="/file",
@@ -131,7 +130,7 @@ async def handle_webhook(request: Request):
         event_type = data.get("event")
 
         if event_type == "file_upload":
-            return await handle_file_upload_event(data)
+            return await handle_file_upload(data=data, jira_service=get_jira_service())
         elif event_type == "file_ready":
             return await handle_file_ready_event(data)
         else:
@@ -141,5 +140,3 @@ async def handle_webhook(request: Request):
     except Exception as e:
         logger.error(f"Error handling webhook: {str(e)}")
         return {"error": f"Error handling webhook: {str(e)}"}
-
-
