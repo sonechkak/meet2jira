@@ -195,9 +195,9 @@ class JiraService:
 def get_jira_service() -> JiraService:
     """Создание экземпляра JiraService из переменных окружения."""
 
-    server_url = os.getenv('JIRA_SERVER_URL', 'https://sonyakarm.atlassian.net')
-    username = os.getenv('JIRA_USERNAME', 'sonyakarm@icloud.com')
-    api_token = os.getenv('JIRA_API_TOKEN', "ATATT3xFfGF0W4kLpVYxmT2rwIuB4rAJB0DmPYFfugK36k8Z3iboSEBAgrbeat6rkntLxj_2GVpINs0rpndjtyzjNrMd61JQdpI8kNfEpc-8eEWqTwMuFgmImTPTh-HkUDHKY2u1PQ18KoTCsJ8HBcCmvv4sb4D29lrkrRcVIAaeaSdYxId94XI=1A1937E5")
+    server_url = os.getenv('JIRA_SERVER_URL')
+    username = os.getenv('JIRA_USERNAME')
+    api_token = os.getenv('JIRA_API_TOKEN')
 
     if not all([server_url, username, api_token]):
         raise HTTPException(
