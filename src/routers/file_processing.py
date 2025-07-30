@@ -3,6 +3,8 @@ import logging
 from fastapi import APIRouter, UploadFile, File, Depends, Request
 
 from src.database import AsyncSessionLocal, get_db_session
+from src.handlers.webhooks.handle_file_ready_event import handle_file_ready_event
+from src.handlers.webhooks.handle_file_upload_event import handle_file_upload_event
 from src.pipeline.pipeline import process_document
 from src.schemas.jira.jira_schemas import JiraTaskRequest
 from src.schemas.processing.processing_schemas import (
@@ -13,6 +15,7 @@ from src.schemas.processing.processing_schemas import (
     ProcessingResponseSchema,
 )
 from src.services.jira_service import JiraService, get_jira_service
+from src.services.llm_service import LlmService
 
 processing_router = APIRouter(
     prefix="/file",
@@ -112,17 +115,31 @@ async def accept_file(
         )
 
 
-@processing_router.get("/webhook")
+@processing_router.post("/webhook")
 async def handle_webhook(request: Request):
     """Webhook endpoint for external services."""
     logger.debug("Webhook received.")
-    data = request.query_params
-    logger.debug(f"Webhook data: {data}")
 
-    if "event" not in data:
-        logger.error("No event specified in webhook data.")
-        return {"error": "No event specified."}
+    try:
+        data = await request.json()
+        logger.debug(f"Webhook data: {data}")
 
-    handle_event_result = await JiraService.handle_event(data)
+        if "event" not in data:
+            logger.error("No event specified in webhook data.")
+            return {"error": "No event specified."}
 
-    return {"message": "Webhook received successfully."}
+        event_type = data.get("event")
+
+        if event_type == "file_upload":
+            return await handle_file_upload_event(data)
+        elif event_type == "file_ready":
+            return await handle_file_ready_event(data)
+        else:
+            logger.error("Unknown event type.")
+            return {"error": f"Unknown event type."}
+
+    except Exception as e:
+        logger.error(f"Error handling webhook: {str(e)}")
+        return {"error": f"Error handling webhook: {str(e)}"}
+
+

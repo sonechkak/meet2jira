@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.12"
 dependencies = [
+    "aiohttp>=3.12.15",
     "aiosqlite>=0.21.0",
     "alembic>=1.16.4",
     "asyncpg>=0.30.0",

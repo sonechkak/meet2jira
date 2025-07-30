@@ -53,7 +53,7 @@ class LlmService(Element):
             )
 
             logger.debug("Запрос отправлен, ожидаем ответа...")
-            response.raise_for_status()  # Проверка на ошибки HTTP
+            response.raise_for_status()
             logger.info("Ответ получен успешно.")
 
             response_data = response.json()
