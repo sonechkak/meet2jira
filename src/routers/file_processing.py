@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, UploadFile, File, Depends
+from fastapi import APIRouter, UploadFile, File, Depends, Request
 
 from src.database import AsyncSessionLocal, get_db_session
 from src.pipeline.pipeline import process_document
@@ -13,7 +13,6 @@ from src.schemas.processing.processing_schemas import (
     ProcessingResponseSchema,
 )
 from src.services.jira_service import JiraService, get_jira_service
-
 
 processing_router = APIRouter(
     prefix="/file",
@@ -111,3 +110,19 @@ async def accept_file(
             epic_key=request.epic_key,
             jira_result=jira_result.dict(),
         )
+
+
+@processing_router.get("/webhook")
+async def handle_webhook(request: Request):
+    """Webhook endpoint for external services."""
+    logger.debug("Webhook received.")
+    data = request.query_params
+    logger.debug(f"Webhook data: {data}")
+
+    if "event" not in data:
+        logger.error("No event specified in webhook data.")
+        return {"error": "No event specified."}
+
+    handle_event_result = await JiraService.handle_event(data)
+
+    return {"message": "Webhook received successfully."}

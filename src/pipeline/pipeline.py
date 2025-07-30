@@ -1,16 +1,15 @@
+import json
 import logging
 import os
 import tempfile
-import json
 
 from fastapi import File
 
+from src.schemas.processing.processing_schemas import ProcessingResponseSchema
 from src.services.llm_service import LlmService
 from src.tools.prompt_generator import PromptGenerator
-from src.utils.file_utils import extract_text_from_file
+from src.utils.files.text.extract_text_from_file import extract_text_from_file
 from .elements.base import Pipeline
-
-from src.schemas.processing.processing_schemas import ProcessingResponseSchema
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)

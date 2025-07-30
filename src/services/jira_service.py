@@ -11,7 +11,7 @@ from src.schemas.jira.jira_schemas import (
     ProcessTaskResponseSchema,
     CreateJiraTaskResponseSchema
 )
-from src.utils.file_utils import parse_tasks_from_text
+from src.utils.jira.parse_tasks_from_text import parse_tasks_from_text
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
