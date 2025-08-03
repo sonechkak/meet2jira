@@ -11,6 +11,7 @@ from src.schemas.jira.jira_schemas import (
     ProcessTaskResponseSchema,
     CreateJiraTaskResponseSchema
 )
+from src.settings.config import settings
 from src.utils.jira.parse_tasks_from_text import parse_tasks_from_text
 
 logging.basicConfig(level=logging.DEBUG)
@@ -195,13 +196,13 @@ class JiraService:
 def get_jira_service() -> JiraService:
     """Создание экземпляра JiraService из переменных окружения."""
 
-    server_url = os.getenv('JIRA_SERVER_URL')
-    username = os.getenv('JIRA_USERNAME')
-    api_token = os.getenv('JIRA_API_TOKEN')
+    server_url = settings.JIRA_SERVER_URL
+    username = settings.JIRA_USERNAME
+    api_token = settings.JIRA_API_TOKEN
 
     if not all([server_url, username, api_token]):
         raise HTTPException(
             status_code=500,
             detail="Не настроены переменные окружения для Jira (JIRA_SERVER_URL, JIRA_USERNAME, JIRA_API_TOKEN)"
         )
-    return JiraService(server_url, username, api_token)
+    return JiraService(server_url=server_url, username=username, api_token=api_token)

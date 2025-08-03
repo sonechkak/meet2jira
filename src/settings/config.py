@@ -1,22 +1,18 @@
 import os
+from pathlib import Path
 from typing import Optional
 
 from dotenv import load_dotenv
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
-ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
-IS_DOCKER = os.path.exists("/.dockerenv") or os.getenv("IS_DOCKER", "false").lower() == "true"
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+env_path = BASE_DIR / ".env.local"
 
-# Загружаем соответствующий .env файл
-if IS_DOCKER:
-    load_dotenv(".env")
-else:
-    # Для локальной разработки
-    if os.path.exists(".env.local"):
-        load_dotenv(".env.local")
-    else:
-        load_dotenv(".env")
+if not env_path.exists():
+    env_path = BASE_DIR / ".env"
+
+load_dotenv(dotenv_path=env_path)
 
 
 class Settings(BaseSettings):
@@ -42,8 +38,8 @@ class Settings(BaseSettings):
 
     # FastAPI
     api_prefix: str = Field(default="/api", description="API prefix")
-    docs_url: Optional[str] = Field(default="/docs", description="Swagger docs URL")
-    redoc_url: Optional[str] = Field(default="/redoc", description="ReDoc URL")
+    docs_url: str = Field(default="/docs", description="Swagger docs URL")
+    redoc_url: str = Field(default="/redoc", description="ReDoc URL")
 
     # File Upload
     max_file_size: int = Field(
@@ -127,7 +123,7 @@ class Settings(BaseSettings):
         return str(self.environment).lower() == "development"
 
     model_config = {
-        "env_file": ".env.local" if not IS_DOCKER else ".env",
+        "env_file": ".env.local" if environment == "local" else ".env",
         "env_file_encoding": "utf-8",
         "case_sensitive": False,
         "extra": "ignore",

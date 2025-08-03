@@ -124,6 +124,10 @@ async def root() -> RootResponseSchema:
         database_uri=settings.SQLALCHEMY_DATABASE_URI,
         docs_url=settings.docs_url,
         redoc_url=settings.redoc_url,
+        # Jira
+        jira_server=settings.JIRA_SERVER_URL,
+        jira_username=settings.JIRA_USERNAME,
+        jira_api_key=settings.JIRA_API_TOKEN,
     )
 
 # Import admin

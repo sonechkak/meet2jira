@@ -1,3 +1,4 @@
+from jira import JIRA
 from pydantic import BaseModel
 
 
@@ -12,3 +13,7 @@ class RootResponseSchema(BaseModel):
     database_uri: str = None
     docs_url: str = None
     redoc_url: str = None
+    jira_server: str = None
+    project_key: str = None
+    jira_username: str = None
+    jira_api_key: str = None
