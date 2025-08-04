@@ -11,7 +11,6 @@ from src.database import (
     create_db_and_tables,
     close_db_connection
 )
-import src.admin.admin
 from src.schemas.main.root_schemas import RootResponseSchema
 from src.settings.config import settings
 
@@ -132,12 +131,14 @@ async def root() -> RootResponseSchema:
         jira_api_key=settings.JIRA_API_TOKEN,
     )
 
-# Import admin
 
 # Include routers
 from src.routers.auth import auth_router
 from src.routers.file_processing import processing_router
 from src.routers.utils import utils_router
+
+# Import admin
+import src.admin.admin
 
 # Mount admin app
 from fastadmin import fastapi_app as admin_app
