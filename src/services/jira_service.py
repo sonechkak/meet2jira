@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from jira import JIRA
 
 from src.models.parsed_task import ParsedTask
+from src.repositories.meeting import MeetingRepository
 from src.schemas.jira.jira_schemas import (
     JiraTaskRequest,
     ProcessTaskResponseSchema,
@@ -28,6 +29,7 @@ class JiraService:
             basic_auth=(username, api_token)
         )
         self.server_url = server_url
+        self.meeting_repository = MeetingRepository("meetings")
 
     def _get_user_account_id(self, display_name: str) -> Optional[str]:
         """Получение account_id пользователя по имени."""

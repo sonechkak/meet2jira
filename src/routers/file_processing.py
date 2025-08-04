@@ -34,7 +34,7 @@ async def process_file(
 ) -> ProcessingResponseSchema:
     """Endpoint to process a file."""
     try:
-        pipeline_response = await process_document(file)
+        pipeline_response = await process_document(db_session=db, file=file)
         logger.info(f"Pipeline response: {pipeline_response}.")
 
         return pipeline_response
