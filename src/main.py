@@ -11,8 +11,10 @@ from src.database import (
     create_db_and_tables,
     close_db_connection
 )
+import src.admin.admin
 from src.schemas.main.root_schemas import RootResponseSchema
 from src.settings.config import settings
+
 
 # Configure logging
 logging.basicConfig(
