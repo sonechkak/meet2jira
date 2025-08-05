@@ -14,7 +14,6 @@ from src.database import (
 from src.schemas.main.root_schemas import RootResponseSchema
 from src.settings.config import settings
 
-
 # Configure logging
 logging.basicConfig(
     level=getattr(logging, settings.log_level.upper()),
@@ -138,7 +137,6 @@ from src.routers.file_processing import processing_router
 from src.routers.utils import utils_router
 
 # Import admin
-import src.admin.admin
 
 # Mount admin app
 from fastadmin import fastapi_app as admin_app

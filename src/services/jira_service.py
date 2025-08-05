@@ -1,5 +1,4 @@
 import logging
-import os
 from typing import Optional
 
 from fastapi import HTTPException
@@ -10,7 +9,7 @@ from src.repositories.meeting import MeetingRepository
 from src.schemas.jira.jira_schemas import (
     JiraTaskRequest,
     ProcessTaskResponseSchema,
-    CreateJiraTaskResponseSchema
+    CreateJiraTaskResponse,
 )
 from src.settings.config import settings
 from src.utils.jira.parse_tasks_from_text import parse_tasks_from_text
@@ -62,7 +61,7 @@ class JiraService:
         except Exception as e:
             return "не удалось получить список"
 
-    def create_jira_task(self, task: ParsedTask, project_key: str, epic_key: Optional[str] = None) -> CreateJiraTaskResponseSchema:
+    def create_jira_task(self, task: ParsedTask, project_key: str, epic_key: Optional[str] = None) -> CreateJiraTaskResponse:
         """Создание задачи в Jira."""
 
         try:
@@ -70,10 +69,11 @@ class JiraService:
             try:
                 project = self.jira.project(project_key)
             except Exception as e:
-                return CreateJiraTaskResponseSchema(
+                return CreateJiraTaskResponse(
                     status="error",
                     error=f"Проект {project_key} не найден. Доступные проекты: {self._get_available_projects()}"
                 )
+
             # Формируем описание задачи
             description_parts = [
                 # f"*Исполнитель:* {task.assignee}",
@@ -126,7 +126,7 @@ class JiraService:
             # Создаем задачу
             new_issue = self.jira.create_issue(fields=issue_dict)
 
-            return CreateJiraTaskResponseSchema(
+            return CreateJiraTaskResponse(
                 status="success",
                 title=task.title,
                 task_id=new_issue.key,
@@ -135,7 +135,7 @@ class JiraService:
 
         except Exception as e:
             error_msg = str(e)
-            return CreateJiraTaskResponseSchema(
+            return CreateJiraTaskResponse(
                 status="error",
                 error=f"Ошибка при создании задачи: {error_msg}"
             )
@@ -180,7 +180,7 @@ class JiraService:
                     })
 
             return ProcessTaskResponseSchema(
-                status="success" if not errors else "partial",
+                status="success" if not errors else "error",
                 created_tasks=created_tasks,
                 error=bool(errors),
                 error_message="Некоторые задачи не были созданы в Jira." if errors else "Все задачи успешно созданы."

@@ -27,7 +27,7 @@ class ProcessTaskResponseSchema(BaseModel):
     error_message: str = ""
 
 
-class CreateJiraTaskResponseSchema(BaseModel):
+class CreateJiraTaskResponse(BaseModel):
     status: str = "success"
     error: Optional[str] = None
     title: Optional[str] = None

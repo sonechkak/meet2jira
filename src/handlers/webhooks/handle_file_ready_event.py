@@ -1,6 +1,7 @@
 import logging
-import aiohttp
 from io import BytesIO
+
+import aiohttp
 
 from src.pipeline.pipeline import process_document
 

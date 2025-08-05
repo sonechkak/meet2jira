@@ -1,6 +1,7 @@
-import requests
 import base64
 import json
+
+import requests
 
 
 def test_webhook_with_jira_creation():

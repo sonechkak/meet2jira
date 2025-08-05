@@ -1,4 +1,3 @@
-from jira import JIRA
 from pydantic import BaseModel
 
 
