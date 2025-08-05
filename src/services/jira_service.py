@@ -78,7 +78,6 @@ class JiraService:
             description_parts = [
                 # f"*Исполнитель:* {task.assignee}",
                 f"*Время выполнения:* {task.time_estimate}",
-                f"*Описание:* {task.description}",
                 ""
             ]
 
