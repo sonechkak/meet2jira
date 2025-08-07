@@ -176,9 +176,11 @@ class JiraService:
                 status="success" if not errors else "error",
                 created_tasks=created_tasks,
                 error=bool(errors),
-                error_message="Некоторые задачи не были созданы в Jira."
-                if errors
-                else "Все задачи успешно созданы.",
+                error_message=(
+                    "Некоторые задачи не были созданы в Jira."
+                    if errors
+                    else "Все задачи успешно созданы."
+                ),
             )
 
         except Exception as e:
