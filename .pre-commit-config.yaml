@@ -18,15 +18,15 @@ repos:
     hooks:
       - id: isort
         name: isort (python)
-        files: backend/
+        files: src/
         types: [file, python]
         args: [-o, alembic, --src, "{{cookiecutter.project_slug}}/backend"]
       - id: isort
-        files: backend/
+        files: src/
         name: isort (cython)
         types: [cython]
       - id: isort
-        files: backend/
+        files: src/
         name: isort (pyi)
         types: [pyi]
 
@@ -35,12 +35,12 @@ repos:
     rev: "v2.4.0"
     hooks:
       - id: prettier
-        files: frontend/
+        files: src/static/
         types_or: [javascript, jsx, ts, tsx]
 
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: "v7.20.0"
     hooks:
       - id: eslint
-        files: frontend/
+        files: src/static/
         types_or: [javascript, jsx, ts, tsx]
