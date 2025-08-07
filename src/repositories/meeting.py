@@ -8,6 +8,10 @@ class MeetingRepository(BaseRepository):
     def __init__(self, db):
         super().__init__(Meeting, db)
 
+    async def list(self):
+        """Retrieve all meeting records from the database."""
+        return await super().list()
+
     async def create_meeting(self, meeting_data: dict) -> dict:
         """Create a new meeting record in the database."""
         return await self.create(obj_in=meeting_data)
@@ -23,3 +27,7 @@ class MeetingRepository(BaseRepository):
     async def delete_meeting(self, meeting_id: str) -> None:
         """Delete a meeting record from the database."""
         await self.delete(meeting_id)
+
+    async def get_all_meetings(self) -> list:
+        """Retrieve all meetings."""
+        return await self.list()

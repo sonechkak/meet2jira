@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, Text
+from sqlalchemy.util import await_only
 
 from src.database import Base
 
@@ -18,3 +19,6 @@ class Meeting(Base):
 
     def __repr__(self):
         return f"<Meeting(id={self.id}, title='{self.title}', status='{self.status}')>"
+
+    def __str__(self):
+        return f"Meeting(id={self.id}, title='{self.title}', status='{self.status}')"

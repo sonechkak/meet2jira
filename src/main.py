@@ -135,6 +135,7 @@ async def root() -> RootResponseSchema:
 from src.routers.auth import auth_router
 from src.routers.file_processing import processing_router
 from src.routers.utils import utils_router
+from src.routers.meeting import meeting_router
 
 
 # Mount admin app
@@ -151,6 +152,7 @@ from src.admin.admin import MeetingAdmin, UserAdmin  # noqa
 app.include_router(auth_router, tags=["Authentication"])
 app.include_router(processing_router, tags=["File Processing"])
 app.include_router(utils_router, tags=["Utils"])
+app.include_router(meeting_router, tags=["Meeting"])
 
 
 if __name__ == "__main__":

@@ -18,3 +18,7 @@ class MeetingService:
 
     def list_meetings(self):
         return self.meeting_repository.list_meetings()
+
+    def get_all_meetings(self):
+        """Получить все встречи."""
+        return self.meeting_repository.get_all_meetings()

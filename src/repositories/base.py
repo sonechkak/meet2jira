@@ -193,3 +193,9 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType], ABC
 
         result = await self.db.execute(query)
         return result.scalars().all()
+
+    async def list(self):
+        """Retrieve all records from the database."""
+        query = select(self.model)
+        result = await self.db.execute(query)
+        return result.scalars().all()
