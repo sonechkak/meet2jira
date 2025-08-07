@@ -136,13 +136,15 @@ from src.routers.auth import auth_router
 from src.routers.file_processing import processing_router
 from src.routers.utils import utils_router
 
-# Import admin
 
 # Mount admin app
 from fastadmin import fastapi_app as admin_app
 
 # Mount the admin app
 app.mount(settings.ADMIN_PREFIX, admin_app)
+
+# Import admin
+from src.admin.admin import MeetingAdmin, UserAdmin  # noqa
 
 
 # Include routers

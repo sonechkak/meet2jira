@@ -8,9 +8,6 @@ from pydantic_settings import BaseSettings
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 env_path = BASE_DIR / ".env.local"
 
-if not env_path.exists():
-    env_path = BASE_DIR / ".env"
-
 load_dotenv(dotenv_path=env_path)
 
 

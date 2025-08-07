@@ -1,4 +1,6 @@
 class MeetingService:
+    """Для поддержания слоистой архитектуры приложения, сервис MeetingService."""
+
     def __init__(self, meeting_repository):
         self.meeting_repository = meeting_repository
 

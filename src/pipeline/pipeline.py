@@ -23,7 +23,7 @@ async def process_document(
         db_session,
         file: File,
         model: str = "yandex-gpt"
-)-> ProcessingResponseSchema:
+) -> ProcessingResponseSchema:
     """Функция для обработки документа с использованием Pipeline."""
 
     # Сохраняем файл временно
