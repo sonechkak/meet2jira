@@ -3,10 +3,10 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import AsyncGenerator
 
-from sqlalchemy import MetaData, Column, DateTime
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy import Column, DateTime, MetaData
+from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
+                                    create_async_engine)
 from sqlalchemy.orm import DeclarativeBase
-
 from src.settings.config import settings
 
 logger = logging.getLogger(__name__)
@@ -28,6 +28,7 @@ metadata = MetaData(
 # Create declarative base for SQLAlchemy 2.0+
 class Base(DeclarativeBase):
     """Base class for all database models."""
+
     metadata = metadata
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -45,17 +46,15 @@ sqlalchemy_engine = create_async_engine(
 
 # Create async session maker
 AsyncSessionLocal = async_sessionmaker(
-    sqlalchemy_engine,
-    class_=AsyncSession,
-    expire_on_commit=False
+    sqlalchemy_engine, class_=AsyncSession, expire_on_commit=False
 )
 
 
 async def create_db_and_tables() -> None:
     """Create database tables."""
     # Импорт моделей для регистрации в метаданных
-    from src.models.user import User  # noqa: F401
     from src.models.meeting import Meeting  # noqa: F401
+    from src.models.user import User  # noqa: F401
 
     async with sqlalchemy_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

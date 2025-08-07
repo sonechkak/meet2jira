@@ -1,14 +1,10 @@
 from abc import ABC
-from typing import Optional, TypeVar, Type, Generic, List, Any, Dict, Union
+from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from pydantic import BaseModel
-from sqlalchemy import select, update, delete, func
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.orm import selectinload
-
-from src.database import (
-    Base,
-    AsyncSessionLocal
-)
+from src.database import AsyncSessionLocal, Base
 
 # Type variables for generic repository
 ModelType = TypeVar("ModelType", bound=Base)
@@ -34,7 +30,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType], ABC
         return db_obj
 
     async def get(
-            self, id: int, *, load_relationships: bool = False
+        self, id: int, *, load_relationships: bool = False
     ) -> Optional[ModelType]:
         """Get a record by ID."""
         query = select(self.model).where(self.model.id == id)
@@ -49,11 +45,11 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType], ABC
         return result.scalars().first()
 
     async def get_by_field(
-            self,
-            field_name: str,
-            field_value: Any,
-            *,
-            load_relationships: bool = False,
+        self,
+        field_name: str,
+        field_value: Any,
+        *,
+        load_relationships: bool = False,
     ) -> Optional[ModelType]:
         """Get a record by any field."""
         query = select(self.model).where(getattr(self.model, field_name) == field_value)
@@ -68,11 +64,11 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType], ABC
         return result.scalars().first()
 
     async def get_multi(
-            self,
-            *,
-            skip: int = 0,
-            limit: int = 100,
-            load_relationships: bool = False,
+        self,
+        *,
+        skip: int = 0,
+        limit: int = 100,
+        load_relationships: bool = False,
     ) -> List[ModelType]:
         """Get multiple records with pagination."""
         query = select(self.model).offset(skip).limit(limit)
@@ -87,10 +83,10 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType], ABC
         return result.scalars().all()
 
     async def update(
-            self,
-            *,
-            db_obj: ModelType,
-            obj_in: Union[UpdateSchemaType, Dict[str, Any]],
+        self,
+        *,
+        db_obj: ModelType,
+        obj_in: Union[UpdateSchemaType, Dict[str, Any]],
     ) -> ModelType:
         """Update an existing record."""
         if isinstance(obj_in, dict):
@@ -165,20 +161,17 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType], ABC
 
     async def bulk_delete(self, *, ids: List[int]) -> int:
         """Delete multiple records in bulk."""
-        query = (
-            delete(self.model)
-            .where(self.model.id.in_(ids))
-        )
+        query = delete(self.model).where(self.model.id.in_(ids))
         result = await self.db.execute(query)
         await self.db.commit()
         return result.rowcount
 
     async def get_by_field_list(
-            self,
-            field_name: str,
-            field_values: List[Any],
-            *,
-            load_relationships: bool = False,
+        self,
+        field_name: str,
+        field_values: List[Any],
+        *,
+        load_relationships: bool = False,
     ) -> List[ModelType]:
         """Get records by field values (IN clause)."""
         query = select(self.model).where(

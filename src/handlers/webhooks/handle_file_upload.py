@@ -24,7 +24,6 @@ async def handle_file_upload(data: dict, jira_service: JiraService):
 
         # 2. Проверяем успешность обработки
         if pipeline_response.status == "success" and not pipeline_response.error:
-
             # 3. Извлекаем текст задач из ответа pipeline
             tasks_text = extract_tasks_from_summary(pipeline_response.summary)
 
@@ -38,9 +37,7 @@ async def handle_file_upload(data: dict, jira_service: JiraService):
 
                 # 5. Создаем задачи в Jira
                 jira_request = JiraTaskRequest(
-                    tasks_text=tasks_text,
-                    project_key=project_key,
-                    epic_key=epic_key
+                    tasks_text=tasks_text, project_key=project_key, epic_key=epic_key
                 )
 
                 jira_result = await jira_service.process_tasks_to_jira(jira_request)
@@ -56,15 +53,15 @@ async def handle_file_upload(data: dict, jira_service: JiraService):
                             "created_tasks": jira_result.created_tasks,
                             "project_key": project_key,
                             "epic_key": epic_key,
-                            "tasks_count": len(jira_result.created_tasks)
-                        }
+                            "tasks_count": len(jira_result.created_tasks),
+                        },
                     }
                 else:
                     return {
                         "status": "partial_success",
                         "message": "File processed but failed to create Jira tasks",
                         "pipeline_result": pipeline_response.dict(),
-                        "jira_error": jira_result.dict()
+                        "jira_error": jira_result.dict(),
                     }
             else:
                 logger.warning("No tasks extracted from pipeline response")
@@ -72,14 +69,14 @@ async def handle_file_upload(data: dict, jira_service: JiraService):
                     "status": "partial_success",
                     "message": "File processed but no tasks found for Jira creation",
                     "pipeline_result": pipeline_response.dict(),
-                    "debug_summary": pipeline_response.summary
+                    "debug_summary": pipeline_response.summary,
                 }
         else:
             logger.error("Pipeline processing failed")
             return {
                 "status": "error",
                 "message": "Pipeline processing failed",
-                "pipeline_result": pipeline_response.dict()
+                "pipeline_result": pipeline_response.dict(),
             }
 
     except Exception as e:
@@ -87,7 +84,7 @@ async def handle_file_upload(data: dict, jira_service: JiraService):
         return {
             "status": "error",
             "message": f"Processing failed: {str(e)}",
-            "error_details": str(e)
+            "error_details": str(e),
         }
 
 
@@ -110,8 +107,8 @@ def extract_tasks_from_summary(summary: dict) -> str:
 
 async def create_webhook_file_object(file_data: dict):
     """Создает файловый объект из данных веб-хука."""
-    from io import BytesIO
     import base64
+    from io import BytesIO
 
     if "content" in file_data:
         # Декодируем base64

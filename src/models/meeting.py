@@ -1,11 +1,10 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text
-from sqlalchemy.util import await_only
-
+from sqlalchemy import Column, DateTime, Integer, String, Text
 from src.database import Base
 
 
 class Meeting(Base):
     """Модель встречи"""
+
     __tablename__ = "meetings"
 
     id = Column(Integer, primary_key=True, index=True)

@@ -5,7 +5,6 @@ import uuid
 import bcrypt
 from fastadmin import SqlAlchemyModelAdmin, register
 from sqlalchemy import select, update
-
 from src.database import AsyncSessionLocal
 from src.models.meeting import Meeting
 from src.models.user import User
@@ -22,13 +21,15 @@ class UserAdmin(SqlAlchemyModelAdmin):
     list_filter = ("id", "username", "is_superuser", "is_active")
     search_fields = ("username",)
 
-    async def authenticate(self, username: str, password: str) -> uuid.UUID | int | None:
+    async def authenticate(
+        self, username: str, password: str
+    ) -> uuid.UUID | int | None:
         sessionmaker = self.get_sessionmaker()
         async with sessionmaker() as session:
             query = select(User).where(
-                (User.username == username) &
-                (User.is_superuser == True) &
-                (User.is_active == True)
+                (User.username == username)
+                & (User.is_superuser == True)
+                & (User.is_active == True)
             )
             result = await session.scalars(query)
             user = result.first()
@@ -39,7 +40,9 @@ class UserAdmin(SqlAlchemyModelAdmin):
 
             logger.debug(f"✅ User found: {user.username} (ID: {user.id})")
 
-            password_valid = bcrypt.checkpw(password.encode(), user.hash_password.encode())
+            password_valid = bcrypt.checkpw(
+                password.encode(), user.hash_password.encode()
+            )
             logger.debug(f"🔑 Password validation: {password_valid}")
 
             if not password_valid:
@@ -53,14 +56,22 @@ class UserAdmin(SqlAlchemyModelAdmin):
         sessionmaker = self.get_sessionmaker()
         async with sessionmaker() as session:
             hash_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-            query = update(self.model_cls).where(User.id.in_([id])).values(hash_password=hash_password)
+            query = (
+                update(self.model_cls)
+                .where(User.id.in_([id]))
+                .values(hash_password=hash_password)
+            )
             await session.execute(query)
             await session.commit()
 
     async def orm_save_upload_field(self, obj: tp.Any, field: str, base64: str) -> None:
         sessionmaker = self.get_sessionmaker()
         async with sessionmaker() as session:
-            query = update(self.model_cls).where(User.id.in_([obj.id])).values(**{field: base64})
+            query = (
+                update(self.model_cls)
+                .where(User.id.in_([obj.id]))
+                .values(**{field: base64})
+            )
             await session.execute(query)
             await session.commit()
 

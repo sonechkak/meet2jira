@@ -11,36 +11,41 @@ repos:
     rev: v0.11.0
     hooks:
       - id: ruff
+        name: ruff (python)
+        types: [file, python]
+        files: ^src/.*\.py$
+        args: ["--fix", "--fix-only", "--extend-ignore=E501,E203"]
+
       - id: ruff-format
+        name: ruff-format (cython, pyi)
+        files: ^src/.*\.(pyx|pyi)$
+        args: ["--fix", "--fix-only", "--extend-ignore=E501,E203"]
 
   - repo: https://github.com/pycqa/isort
     rev: 6.0.1
     hooks:
       - id: isort
         name: isort (python)
-        files: src/
-        types: [file, python]
+        files: ^src/.*\.py$
         args: [-o, alembic, --src, "{{cookiecutter.project_slug}}/backend"]
+
       - id: isort
-        files: src/
         name: isort (cython)
-        types: [cython]
+        files: ^src/.*\.pyx$
+
       - id: isort
-        files: src/
         name: isort (pyi)
-        types: [pyi]
+        files: ^src/.*\.pyi$
 
   # Frontend hooks
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: "v2.4.0"
     hooks:
       - id: prettier
-        files: src/static/
-        types_or: [javascript, jsx, ts, tsx]
+        files: ^src/static/js/.*\.(js|jsx|ts|tsx)$
 
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: "v7.20.0"
     hooks:
       - id: eslint
-        files: src/static/
-        types_or: [javascript, jsx, ts, tsx]
+        files: ^src/static/js/.*\.(js|jsx|ts|tsx)$

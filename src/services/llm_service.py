@@ -1,7 +1,6 @@
 import logging
 
 import httpx as requests
-
 from src.pipeline.elements.base import Element
 from src.schemas.llm.llm_service_schemas import LLMServiceResponseSchema
 
@@ -13,14 +12,13 @@ class LlmService(Element):
     """Сервис для ламы."""
 
     def __init__(
-            self,
-            prompt: str,
-            model="yandex-gpt",
-            base_url="http://localhost:11434"
+        self, prompt: str, model="yandex-gpt", base_url="http://localhost:11434"
     ) -> None:
         """Инициализация сервиса LLM."""
 
-        logger.debug("Инициализация LLM сервиса с моделью %s и базовым URL %s", model, base_url)
+        logger.debug(
+            "Инициализация LLM сервиса с моделью %s и базовым URL %s", model, base_url
+        )
         super().__init__(model=model, tools=[], prompt="", obj=None)
         self.prompt = prompt
         self.base_url = base_url
@@ -39,17 +37,15 @@ class LlmService(Element):
                     "temperature": 0.3,
                     "top_p": 0.9,
                     "num_predict": 2048,
-                }
+                },
             }
 
             logger.info(f"Отправка запроса к модели: {self.api_url}")
             response = requests.post(
                 self.api_url,
                 json=payload,
-                headers={
-                    "Content-Type": "application/json"
-                },
-                timeout=120
+                headers={"Content-Type": "application/json"},
+                timeout=120,
             )
 
             logger.debug("Запрос отправлен, ожидаем ответа...")
@@ -67,7 +63,7 @@ class LlmService(Element):
                     status="success",
                     response_text=cleaned_text,
                     response_data=response_data,
-                    model_name=self.model
+                    model_name=self.model,
                 )
             else:
                 logger.error("Модель вернула пустой ответ.")
@@ -75,14 +71,11 @@ class LlmService(Element):
                     status="error",
                     error=True,
                     error_message="Модель вернула пустой ответ. Проверьте настройки модели и запрос.",
-                    response_text=""
+                    response_text="",
                 )
 
         except Exception as e:
             logger.error(f"Ошибка при вызове API model: {str(e)}")
             return LLMServiceResponseSchema(
-                status="error",
-                error=True,
-                error_message=str(e),
-                response_text=""
+                status="error", error=True, error_message=str(e), response_text=""
             )

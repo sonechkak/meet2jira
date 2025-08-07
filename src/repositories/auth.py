@@ -1,25 +1,20 @@
 from operator import or_
-from typing import Optional
-
 from select import select
+from typing import Optional
 
 from src.database import AsyncSessionLocal
 from src.models.user import User
 from src.repositories.base import BaseRepository
-from src.schemas.auth.user import (
-    UserUpdateSchema,
-    UserCreateSchema
-)
+from src.schemas.auth.user import UserCreateSchema, UserUpdateSchema
 
 
 class AuthRepositoryError(Exception):
     """Base class for authentication repository errors."""
+
     pass
 
 
-class AuthRepository(
-    BaseRepository[User, UserCreateSchema, UserUpdateSchema]
-):
+class AuthRepository(BaseRepository[User, UserCreateSchema, UserUpdateSchema]):
     """Repository for user authentication and management."""
 
     def __init__(self, db: AsyncSessionLocal):
@@ -36,10 +31,7 @@ class AuthRepository(
     async def get_user_by_identifier(self, identifier: str) -> Optional[User]:
         """Get user by username or email."""
         query = select(User).where(
-            or_(
-                User.username == identifier.lower(),
-                User.email == identifier.lower()
-            )
+            or_(User.username == identifier.lower(), User.email == identifier.lower())
         )
         result = await self.db.execute(query)
         return result.scalars().first()

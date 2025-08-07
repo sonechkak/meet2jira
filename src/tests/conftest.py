@@ -17,6 +17,7 @@ def disable_logging():
 @pytest.fixture(autouse=True, scope="session")
 def load_local_dev_env():
     import sys
+
     from dotenv import load_dotenv
 
     python_path = Path(__file__).resolve().parent.parent

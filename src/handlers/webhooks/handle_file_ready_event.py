@@ -2,7 +2,6 @@ import logging
 from io import BytesIO
 
 import aiohttp
-
 from src.pipeline.pipeline import process_document
 
 logger = logging.getLogger(__name__)
@@ -25,7 +24,9 @@ async def handle_file_ready_event(data: dict):
                         def __init__(self, content: bytes, filename: str):
                             self.file = BytesIO(content)
                             self.filename = filename
-                            self.content_type = response.headers.get("content-type", "application/octet-stream")
+                            self.content_type = response.headers.get(
+                                "content-type", "application/octet-stream"
+                            )
 
                         async def read(self):
                             return self.file.read()

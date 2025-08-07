@@ -6,17 +6,12 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # Настройка клиента для модели
-client = openai.OpenAI(
-    base_url="http://localhost:11434/v1",
-    api_key="yandex-gpt"
-)
+client = openai.OpenAI(base_url="http://localhost:11434/v1", api_key="yandex-gpt")
 
 # Запрос к модели
 response = client.chat.completions.create(
     model="yandex-gpt",
-    messages=[
-        {"role": "user", "content": "Привет! Ты говоришь по-русски?"}
-    ],
+    messages=[{"role": "user", "content": "Привет! Ты говоришь по-русски?"}],
     max_tokens=512,
-    temperature=0.7
+    temperature=0.7,
 )

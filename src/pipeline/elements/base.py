@@ -1,14 +1,13 @@
 import logging
 from typing import Any
 
-
-
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
 class Element:
     """Класс для представления элемента, который может быть выполнен с использованием модели и инструментов."""
+
     def __init__(self, model: str, tools: list, prompt: str, obj: Any):
         self.model = model
         self.tools = tools
@@ -24,8 +23,9 @@ class Element:
 
 class Pipeline(Element):
     """Класс для представления конвейера, который выполняет последовательность элементов."""
+
     def __init__(self, model: str, tools: list, elements: list):
-        super().__init__(model, tools, '', None)
+        super().__init__(model, tools, "", None)
         self.document_type = None
         self.elements = elements
 
@@ -48,12 +48,13 @@ class Pipeline(Element):
             "results": results,
             "model_name": self.model,
             "error": False,
-            "error_message": None
+            "error_message": None,
         }
 
 
 class Tool:
     """Класс для представления инструмента, который может быть использован в конвейере."""
+
     def __init__(self, name: str, description: str, **kwargs):
         self.name = name
         self.description = description
@@ -64,4 +65,4 @@ class Tool:
         raise NotImplementedError("Метод run должен быть реализован в подклассе.")
 
     def __str__(self):
-        return f'Tool: {self.name} - {self.description}'
+        return f"Tool: {self.name} - {self.description}"

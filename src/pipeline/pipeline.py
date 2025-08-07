@@ -5,24 +5,22 @@ import os
 import tempfile
 
 from fastapi import File
-
 from src.schemas.processing.processing_schemas import ProcessingResponseSchema
 from src.services.llm_service import LlmService
 from src.tools.prompt_generator import PromptGenerator
 from src.utils.files.text.extract_text_from_file import extract_text_from_file
-from .elements.base import Pipeline
+
 from ..repositories.meeting import MeetingRepository
 from ..schemas.model.meeting import MeetingCreateSchema
 from ..services.meeting_service import MeetingService
+from .elements.base import Pipeline
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
 async def process_document(
-        db_session,
-        file: File,
-        model: str = "yandex-gpt"
+    db_session, file: File, model: str = "yandex-gpt"
 ) -> ProcessingResponseSchema:
     """Функция для обработки документа с использованием Pipeline."""
 
@@ -42,15 +40,15 @@ async def process_document(
                 error_message="Extracted text is empty",
                 model=model,
                 document_name=file.filename,
-                summary={}
+                summary={},
             )
 
         # Сохраняем извлеченный текст в БД
         meeting_data = {
-            'title': f"Обработка файла {file.filename}",
-            'file_name': file.filename,
-            'description': f"Обработка файла {file.filename} с помощью модели {model}",
-            'meeting_date': datetime.datetime.now(),
+            "title": f"Обработка файла {file.filename}",
+            "file_name": file.filename,
+            "description": f"Обработка файла {file.filename} с помощью модели {model}",
+            "meeting_date": datetime.datetime.now(),
         }
         meeting_schema = MeetingCreateSchema(**meeting_data)
 
@@ -63,7 +61,9 @@ async def process_document(
             logger.info(f"Создана запись встречи: {created_meeting}")
 
         logger.info(f"Извлеченный текст длиной: {len(text)} символов")
-        logger.debug(f"Extracted text: {text[:200]}...")  # Логируем первые 200 символов текста
+        logger.debug(
+            f"Extracted text: {text[:200]}..."
+        )  # Логируем первые 200 символов текста
 
         # 2. Генерируем промпт для LLM
         prompt_generator = PromptGenerator(text=text)
@@ -73,60 +73,71 @@ async def process_document(
         pipeline = Pipeline(
             model=model,
             tools=[],
-            elements=[LlmService(prompt=prompt),]
+            elements=[
+                LlmService(prompt=prompt),
+            ],
         )
         raw_result = pipeline.run()
         logger.debug(f"Raw result from LLM: {raw_result}")
 
         summary_data = {
-            'summary': "",
-            'content': "",
-            'key_points': [],
-            'action_items': []
+            "summary": "",
+            "content": "",
+            "key_points": [],
+            "action_items": [],
         }
 
         llm_response_text = None
         if raw_result and isinstance(raw_result, dict):
-            results = raw_result.get('results', [])
+            results = raw_result.get("results", [])
             if results and len(results) > 0:
                 first_result = results[0]
                 if isinstance(first_result, dict):
-                    llm_response_text = first_result.get('response_text')
+                    llm_response_text = first_result.get("response_text")
 
         if llm_response_text:
-            logger.info(f"Получен ответ от LLM длиной: {len(llm_response_text)} символов")
+            logger.info(
+                f"Получен ответ от LLM длиной: {len(llm_response_text)} символов"
+            )
             logger.debug(f"LLM response_text: {llm_response_text[:200]}...")
 
             try:
                 # Попытка парсинга как JSON
                 parsed = json.loads(llm_response_text)
-                summary_data.update({
-                    "summary": parsed.get("summary", ""),
-                    "content": parsed.get("content", parsed.get("text", "")),
-                    "key_points": parsed.get("key_points", []),
-                    "action_items": parsed.get("action_items", [])
-                })
+                summary_data.update(
+                    {
+                        "summary": parsed.get("summary", ""),
+                        "content": parsed.get("content", parsed.get("text", "")),
+                        "key_points": parsed.get("key_points", []),
+                        "action_items": parsed.get("action_items", []),
+                    }
+                )
                 logger.info("LLM ответ успешно распарсен как JSON")
             except json.JSONDecodeError as e:
                 logger.warning(f"LLM ответ не является JSON: {e}")
                 # Если не JSON, используем как есть
-                summary_data.update({
-                    "summary": llm_response_text[:500] + ("..." if len(llm_response_text) > 500 else ""),
-                    "content": llm_response_text,
-                    "key_points": [],
-                    "action_items": []
-                })
+                summary_data.update(
+                    {
+                        "summary": llm_response_text[:500]
+                        + ("..." if len(llm_response_text) > 500 else ""),
+                        "content": llm_response_text,
+                        "key_points": [],
+                        "action_items": [],
+                    }
+                )
         else:
             logger.error("Не удалось извлечь response_text из результата LLM")
 
-        logger.info(f"Финальные данные: summary={len(summary_data.get('summary', ''))}, content={len(summary_data.get('content', ''))}")
+        logger.info(
+            f"Финальные данные: summary={len(summary_data.get('summary', ''))}, content={len(summary_data.get('content', ''))}"
+        )
 
         return ProcessingResponseSchema(
             status="success",
             error=False,
             model=model,
             document_name=file.filename,
-            summary=summary_data
+            summary=summary_data,
         )
 
     except Exception as e:
@@ -137,7 +148,7 @@ async def process_document(
             error_message=str(e),
             model=model,
             document_name=file.filename,
-            summary={'error': str(e)}
+            summary={"error": str(e)},
         )
 
     finally:

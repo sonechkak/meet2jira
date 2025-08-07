@@ -1,19 +1,16 @@
 import logging
 
-from fastapi import APIRouter, UploadFile, File, Depends, Request
-
+from fastapi import APIRouter, Depends, File, Request, UploadFile
 from src.database import AsyncSessionLocal, get_db_session
-from src.handlers.webhooks.handle_file_ready_event import handle_file_ready_event
+from src.handlers.webhooks.handle_file_ready_event import \
+    handle_file_ready_event
 from src.handlers.webhooks.handle_file_upload import handle_file_upload
 from src.pipeline.pipeline import process_document
 from src.schemas.jira.jira_schemas import JiraTaskRequest
 from src.schemas.processing.processing_schemas import (
-    AcceptResultRequestSchema,
-    RejectProcessingResponseSchema,
-    RejectProcessingRequestSchema,
-    AcceptResultResponseSchema,
-    ProcessingResponseSchema,
-)
+    AcceptResultRequestSchema, AcceptResultResponseSchema,
+    ProcessingResponseSchema, RejectProcessingRequestSchema,
+    RejectProcessingResponseSchema)
 from src.services.jira_service import JiraService, get_jira_service
 
 processing_router = APIRouter(
@@ -29,8 +26,7 @@ logger = logging.getLogger(__name__)
 
 @processing_router.post("/process")
 async def process_file(
-        file: UploadFile = File(...),
-        db: AsyncSessionLocal = Depends(get_db_session)
+    file: UploadFile = File(...), db: AsyncSessionLocal = Depends(get_db_session)
 ) -> ProcessingResponseSchema:
     """Endpoint to process a file."""
     try:
@@ -46,33 +42,30 @@ async def process_file(
             error=True,
             error_message=str(e),
             document_name=file.filename,
-            summary={}
+            summary={},
         )
 
 
 @processing_router.post("/reject")
 async def reject_processing(
-        request: RejectProcessingRequestSchema,
+    request: RejectProcessingRequestSchema,
 ) -> RejectProcessingResponseSchema:
     """Endpoint to reject a file."""
 
-    return RejectProcessingResponseSchema(
-        status="success",
-        error=False
-    )
+    return RejectProcessingResponseSchema(status="success", error=False)
 
 
 @processing_router.post("/accept")
 async def accept_file(
     request: AcceptResultRequestSchema,
-    jira_service: JiraService = Depends(get_jira_service)
+    jira_service: JiraService = Depends(get_jira_service),
 ) -> AcceptResultResponseSchema:
     """Cоздание задач в Jira."""
     try:
         jira_request = JiraTaskRequest(
             tasks_text=request.tasks_text,
             project_key=request.project_key,
-            epic_key=request.epic_key
+            epic_key=request.epic_key,
         )
 
         jira_result = await jira_service.process_tasks_to_jira(jira_request)
@@ -97,7 +90,7 @@ async def accept_file(
             tasks_text=request.tasks_text,
             project_key=request.project_key,
             epic_key=request.epic_key,
-            jira_result=jira_result.dict()
+            jira_result=jira_result.dict(),
         )
 
     except Exception as e:
@@ -135,7 +128,7 @@ async def handle_webhook(request: Request):
             return await handle_file_ready_event(data)
         else:
             logger.error("Unknown event type.")
-            return {"error": f"Unknown event type."}
+            return {"error": "Unknown event type."}
 
     except Exception as e:
         logger.error(f"Error handling webhook: {str(e)}")

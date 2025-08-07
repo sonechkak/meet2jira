@@ -8,19 +8,19 @@ def process_audio_chunk(audio_chunk, chunk_number, total_chunks):
     """Обработка одного фрагмента аудио"""
     r = sr.Recognizer()
 
-    with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_wav:
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_wav:
         temp_wav_path = temp_wav.name
 
     try:
         # Экспортируем фрагмент в WAV
-        audio_chunk.export(temp_wav_path, format='wav')
+        audio_chunk.export(temp_wav_path, format="wav")
 
         with sr.AudioFile(temp_wav_path) as source:
             r.adjust_for_ambient_noise(source, duration=0.5)
             audio = r.record(source)
 
             try:
-                text = r.recognize_google(audio, language='ru-RU')
+                text = r.recognize_google(audio, language="ru-RU")
                 print(f"Обработан фрагмент {chunk_number}/{total_chunks}")
                 return text
             except sr.UnknownValueError:

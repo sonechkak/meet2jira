@@ -4,15 +4,11 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from fastapi import FastAPI
-from starlette.middleware.cors import CORSMiddleware
-from starlette.staticfiles import StaticFiles
-
-from src.database import (
-    create_db_and_tables,
-    close_db_connection
-)
+from src.database import close_db_connection, create_db_and_tables
 from src.schemas.main.root_schemas import RootResponseSchema
 from src.settings.config import settings
+from starlette.middleware.cors import CORSMiddleware
+from starlette.staticfiles import StaticFiles
 
 # Configure logging
 logging.basicConfig(
@@ -22,23 +18,23 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+from src.models.meeting import Meeting as MeetingModel
 # Добавляем модели в globals()
 from src.models.user import User as UserModel
-from src.models.meeting import Meeting as MeetingModel
 
 globals().update(User=UserModel, Meeting=MeetingModel)
 os.environ.update(
     ADMIN_USER_MODEL="User",
     ADMIN_USER_MODEL_USERNAME_FIELD="username",
-    ADMIN_SECRET_KEY="secret-key-123"
+    ADMIN_SECRET_KEY="secret-key-123",
 )
 
 
 async def run_migrations():
     """Запуск миграций программно"""
     try:
-        from alembic.config import Config
         from alembic import command
+        from alembic.config import Config
 
         # Создаем конфиг Alembic
         alembic_cfg = Config("alembic.ini")
@@ -131,22 +127,19 @@ async def root() -> RootResponseSchema:
     )
 
 
+# Mount admin app
+from fastadmin import fastapi_app as admin_app
 # Include routers
 from src.routers.auth import auth_router
 from src.routers.file_processing import processing_router
-from src.routers.utils import utils_router
 from src.routers.meeting import meeting_router
-
-
-# Mount admin app
-from fastadmin import fastapi_app as admin_app
+from src.routers.utils import utils_router
 
 # Mount the admin app
 app.mount(settings.ADMIN_PREFIX, admin_app)
 
 # Import admin
 from src.admin.admin import MeetingAdmin, UserAdmin  # noqa
-
 
 # Include routers
 app.include_router(auth_router, tags=["Authentication"])

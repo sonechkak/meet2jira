@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     # Database
     SQLALCHEMY_DATABASE_URI: str = Field(
         default="postgresql+asyncpg://meet2jira_user:meet2jira_password@127.0.0.1:5432/meet2jira",
-        description="Database connection URI PostgreSQL"
+        description="Database connection URI PostgreSQL",
     )
     SQLALCHEMY_ECHO: bool = Field(
         default=True, description="Enable SQLAlchemy echo for debugging"
@@ -69,32 +69,33 @@ class Settings(BaseSettings):
 
     # JIRA settings
     JIRA_SERVER_URL: str = Field(
-        default=str(os.getenv("JIRA_API_URL")),
-        description="Jira server URL"
+        default=str(os.getenv("JIRA_API_URL")), description="Jira server URL"
     )
     JIRA_USERNAME: str = Field(
-        default=str(os.getenv("JIRA_API_USER")),
-        description="Jira username"
+        default=str(os.getenv("JIRA_API_USER")), description="Jira username"
     )
     JIRA_API_TOKEN: str = Field(
-        default=str(os.getenv("JIRA_API_TOKEN")),
-        description="Jira API token"
+        default=str(os.getenv("JIRA_API_TOKEN")), description="Jira API token"
     )
     JIRA_DEFAULT_PROJECT_KEY: str = Field(
         default=str(os.getenv("JIRA_DEFAULT_PROJECT_KEY")),
-        description="Default Jira project key"
+        description="Default Jira project key",
     )
     JIRA_EPIC_KEY: str = Field(
-        default=str(os.getenv("JIRA_EPIC_KEY", "EPIC-1")),
-        description="Jira epic key"
+        default=str(os.getenv("JIRA_EPIC_KEY", "EPIC-1")), description="Jira epic key"
     )
     JIRA_EPIC_NAME: str = Field(
         default=str(os.getenv("JIRA_EPIC_NAME", "Epic Name")),
-        description="Name for Jira epic"
+        description="Name for Jira epic",
     )
     JIRA_EPIC_URL: str = Field(
-        default=str(os.getenv("JIRA_EPIC_URL", f"{JIRA_SERVER_URL}/browse/{os.getenv('JIRA_EPIC_KEY', 'EPIC-1')}")),
-        description="URL for Jira epic"
+        default=str(
+            os.getenv(
+                "JIRA_EPIC_URL",
+                f"{JIRA_SERVER_URL}/browse/{os.getenv('JIRA_EPIC_KEY', 'EPIC-1')}",
+            )
+        ),
+        description="URL for Jira epic",
     )
 
     def __init__(self, **kwargs):
@@ -129,6 +130,7 @@ class Settings(BaseSettings):
 
 # Global settings instance
 settings = Settings()
+
 
 def get_settings() -> Settings:
     """Get application settings instance."""

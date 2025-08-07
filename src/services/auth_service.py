@@ -1,11 +1,10 @@
 import logging
 import re
 from datetime import datetime
+from select import select
 from typing import Optional
 
 import bcrypt
-from select import select
-
 from src.database import AsyncSessionLocal
 from src.models.user import User
 from src.repositories.auth import AuthRepository
@@ -20,13 +19,17 @@ class AuthService:
     def __init__(self, auth_repository):
         self.auth_repository = auth_repository
 
-    async def get_user_by_id(self, session: AsyncSessionLocal, user_id: str) -> Optional[User]:
+    async def get_user_by_id(
+        self, session: AsyncSessionLocal, user_id: str
+    ) -> Optional[User]:
         """Retrieve a user by their ID."""
         if not user_id:
             raise ValueError("User ID is required to get the user.")
         return await self.auth_repository.get_user_by_id(session, user_id)
 
-    async def get_user_by_username(self, session: AsyncSessionLocal, username: str) -> Optional[User]:
+    async def get_user_by_username(
+        self, session: AsyncSessionLocal, username: str
+    ) -> Optional[User]:
         """Retrieve a user by their username."""
         if not username:
             raise ValueError("Username is required to get the user.")
@@ -37,7 +40,7 @@ class AuthService:
             raise ValueError(f"Failed to retrieve user by username: {e}")
 
     async def get_user_by_email(
-            self, session: AsyncSessionLocal, email: str
+        self, session: AsyncSessionLocal, email: str
     ) -> Optional[User]:
         """Get user by email."""
         try:
@@ -47,7 +50,7 @@ class AuthService:
             raise ValueError(f"Failed to retrieve user by email: {e}")
 
     async def create_user(
-            self, session: AsyncSessionLocal, user_data: UserCreateSchema
+        self, session: AsyncSessionLocal, user_data: UserCreateSchema
     ) -> Optional[User]:
         """Create a new user."""
         try:
@@ -55,7 +58,9 @@ class AuthService:
             if user_data.username:
                 existing_user = await self.get_user_by_username()
                 if existing_user:
-                    logger.warning(f"User with username {user_data.username} already exists")
+                    logger.warning(
+                        f"User with username {user_data.username} already exists"
+                    )
                     return None
 
             # Check if email already exists
@@ -79,9 +84,7 @@ class AuthService:
             await session.commit()
             await session.refresh(user)
 
-            logger.debug(
-                f"Created new user: {user.username or user.id}"
-            )
+            logger.debug(f"Created new user: {user.username or user.id}")
             return user
 
         except Exception as e:
@@ -90,7 +93,7 @@ class AuthService:
             return None
 
     async def update_user(
-            self, session: AsyncSessionLocal, user_id: int, user_data: UserUpdateSchema
+        self, session: AsyncSessionLocal, user_id: int, user_data: UserUpdateSchema
     ) -> Optional[User]:
         """Update user information."""
         try:
@@ -121,10 +124,7 @@ class AuthService:
             await session.rollback()
             return None
 
-    async def authenticate_user(
-            self,
-            identifier: str
-    ) -> Optional[User]:
+    async def authenticate_user(self, identifier: str) -> Optional[User]:
         """Authenticate user by identifier."""
         try:
             user = None
@@ -153,11 +153,11 @@ class AuthService:
             return None
 
     async def login(
-            self,
-            identifier: str,
-            password: str,
-            remember_me: bool,
-            captcha: Optional[str] = None
+        self,
+        identifier: str,
+        password: str,
+        remember_me: bool,
+        captcha: Optional[str] = None,
     ) -> Optional[User]:
         """Login the user with provided credentials."""
         if not identifier or not password:
@@ -186,10 +186,10 @@ class AuthService:
         # if not re.search(r'[A-Z]', password):
         #     return False, "Пароль должен содержать заглавные буквы"
 
-        if not re.search(r'[a-z]', password):
+        if not re.search(r"[a-z]", password):
             return False, "Пароль должен содержать строчные буквы"
 
-        if not re.search(r'\d', password):
+        if not re.search(r"\d", password):
             return False, "Пароль должен содержать цифры"
 
         return True, "Пароль валиден"

@@ -4,12 +4,14 @@ from src.pipeline.elements.base import Tool
 class PromptGenerator(Tool):
     """Класс для генерации промптов."""
 
-    def __init__(self,
-                 name: str = "PromptGenerator",
-                 description: str = "Генерирует промпт для LLM.",
-                 **kwargs):
+    def __init__(
+        self,
+        name: str = "PromptGenerator",
+        description: str = "Генерирует промпт для LLM.",
+        **kwargs,
+    ):
         super().__init__(name=name, description=description, **kwargs)
-        self.text = kwargs.get('text', '')
+        self.text = kwargs.get("text", "")
 
     def run(self) -> str:
         """Возвращает специализированный промпт для конкретного типа документа."""
@@ -59,7 +61,7 @@ class PromptGenerator(Tool):
                 Простые: 1-3 дня
                 Средние: 3-5 дней
                 Сложные: 5-7 дней
-                
+
                 Требования к качеству:
 
                 Всего 8-12 задач (не больше!)
@@ -69,7 +71,7 @@ class PromptGenerator(Tool):
 
                 Начинай ответ с: "Предлагаю создать следующие задачи:"
                 Создавай краткий, но полный план разработки готовый к использованию без контекста.
-                
+
                 Текст обсуждения следующий: f"{self.text}"
             """
         }

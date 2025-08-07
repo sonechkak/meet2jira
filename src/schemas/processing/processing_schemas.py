@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
 
@@ -15,6 +15,7 @@ class ProcessingResponseSchema(BaseModel):
 
 class RejectProcessingResponseSchema(BaseModel):
     """Schema for the response when a file is rejected."""
+
     status: str = "success"
     error: bool = False
     error_message: str = None
@@ -22,6 +23,7 @@ class RejectProcessingResponseSchema(BaseModel):
 
 class AcceptResultResponseSchema(BaseModel):
     """Schema for the response when a result is accepted."""
+
     status: str = "success"
     error: bool = False
     error_message: str = None
@@ -36,6 +38,7 @@ class AcceptResultResponseSchema(BaseModel):
 # Request Schemas
 class RejectProcessingRequestSchema(BaseModel):
     """Schema for the request to reject a file."""
+
     success: bool
     message: str
 

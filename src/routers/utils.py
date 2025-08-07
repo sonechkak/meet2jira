@@ -1,9 +1,9 @@
 import logging
 
-from fastapi import APIRouter, Request, Depends
-
-from src.schemas.debug.utils_schemas import JiraInfoResponseSchema, CreateSimpleTaskSchema
-from src.services.jira_service import get_jira_service, JiraService
+from fastapi import APIRouter, Depends, Request
+from src.schemas.debug.utils_schemas import (CreateSimpleTaskSchema,
+                                             JiraInfoResponseSchema)
+from src.services.jira_service import JiraService, get_jira_service
 from src.settings.config import settings
 
 logging.basicConfig(level=logging.DEBUG)
@@ -16,16 +16,15 @@ utils_router = APIRouter(
 )
 
 
-@utils_router.get('/list_endpoints/')
+@utils_router.get("/list_endpoints/")
 def list_endpoints(request: Request):
     url_list = [
-        {'path': route.path, 'name': route.name}
-        for route in request.app.routes
+        {"path": route.path, "name": route.name} for route in request.app.routes
     ]
     return url_list
 
 
-@utils_router.get('/debug_jira_info/')
+@utils_router.get("/debug_jira_info/")
 async def debug_jira_info() -> JiraInfoResponseSchema:
     """
     Отладочная информация о Jira
@@ -44,12 +43,12 @@ async def debug_jira_info() -> JiraInfoResponseSchema:
         if projects:
             try:
                 project_meta = jira_service.jira.createmeta(
-                    projectKeys=projects[0].key,
-                    expand="projects.issuetypes.fields"
+                    projectKeys=projects[0].key, expand="projects.issuetypes.fields"
                 )
-                if project_meta.get('projects'):
+                if project_meta.get("projects"):
                     issue_types = [
-                        it['name'] for it in project_meta['projects'][0].get('issuetypes', [])
+                        it["name"]
+                        for it in project_meta["projects"][0].get("issuetypes", [])
                     ]
             except Exception as e:
                 issue_types = [f"Ошибка получения типов: {str(e)}"]
@@ -86,8 +85,8 @@ async def debug_jira_info() -> JiraInfoResponseSchema:
 
 @utils_router.post("/debug/create-simple-task")
 async def create_simple_task(
-        project_key: str = "LEARNJIRA",
-        jira_service: JiraService = Depends(get_jira_service)
+    project_key: str = "LEARNJIRA",
+    jira_service: JiraService = Depends(get_jira_service),
 ) -> CreateSimpleTaskSchema:
     """
     Создание простой тестовой задачи
@@ -95,10 +94,10 @@ async def create_simple_task(
 
     try:
         issue_dict = {
-            'project': {'key': project_key},
-            'summary': 'Тестовая задача из API',
-            'description': '*Приоритет:* High\n*Исполнитель:* Тестовый пользователь\n*Описание:* Это тестовая задача для проверки интеграции с Jira API',
-            'issuetype': {'name': 'Task'}
+            "project": {"key": project_key},
+            "summary": "Тестовая задача из API",
+            "description": "*Приоритет:* High\n*Исполнитель:* Тестовый пользователь\n*Описание:* Это тестовая задача для проверки интеграции с Jira API",
+            "issuetype": {"name": "Task"},
         }
 
         logger.debug(f"Пытаемся создать задачу в проекте: {project_key}")
@@ -114,8 +113,4 @@ async def create_simple_task(
         )
 
     except Exception as e:
-        return CreateSimpleTaskSchema(
-            status="error",
-            error=True,
-            error_message=str(e)
-        )
+        return CreateSimpleTaskSchema(status="error", error=True, error_message=str(e))

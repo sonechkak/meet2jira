@@ -4,7 +4,6 @@ import sys
 from pathlib import Path
 
 import bcrypt
-
 from src.database import AsyncSessionLocal
 from src.models.user import User
 
@@ -31,7 +30,9 @@ async def create_superuser():
     logger.debug(f"Creating user: {username} / {email}")
 
     # Хешируем пароль
-    hash_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    hash_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode(
+        "utf-8"
+    )
 
     async with AsyncSessionLocal() as session:
         try:
@@ -54,7 +55,7 @@ async def create_superuser():
             logger.debug(f"✅ Superuser '{username}' created successfully!")
             logger.debug(f"📧 Email: {email}")
             logger.debug(f"🔑 Password: {password}")
-            logger.debug(f"🌐 Admin URL: http://localhost:8000/admin")
+            logger.debug("🌐 Admin URL: http://localhost:8000/admin")
 
         except Exception as e:
             logger.error(f"❌ Error creating superuser: {e}")
