@@ -77,8 +77,19 @@ async def process_document(
                 LlmService(prompt=prompt),
             ],
         )
+
         raw_result = pipeline.run()
-        logger.debug(f"Raw result from LLM: {raw_result}")
+        if raw_result:
+            logger.info("Pipeline успешно выполнен.")
+            updated_meeting_status = await meeting_service.update_meeting(
+                meeting_id=created_meeting.id,
+                meeting_data={
+                    "status": "processed",
+                    "summary": raw_result.get("results", []),
+                },
+            )
+        else:
+            logger.error("Pipeline вернул пустой результат.")
 
         summary_data = {
             "summary": "",

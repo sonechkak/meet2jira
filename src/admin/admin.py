@@ -28,8 +28,8 @@ class UserAdmin(SqlAlchemyModelAdmin):
         async with sessionmaker() as session:
             query = select(User).where(
                 (User.username == username)
-                & (User.is_superuser == True)
-                & (User.is_active == True)
+                & (User.is_superuser.is_(True))
+                & (User.is_active.is_(True))
             )
             result = await session.scalars(query)
             user = result.first()

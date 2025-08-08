@@ -6,5 +6,5 @@ def get_audio_duration(file_path):
     try:
         audio = AudioSegment.from_file(file_path)
         return len(audio) / 1000.0  # в секундах
-    except:
+    except Exception:
         return 0

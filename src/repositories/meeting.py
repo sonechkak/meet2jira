@@ -22,7 +22,12 @@ class MeetingRepository(BaseRepository):
 
     async def update_meeting(self, meeting_id: str, update_data: dict) -> dict:
         """Update an existing meeting record."""
-        return await self.update(meeting_id, update_data)
+        db_obj = await self.get(meeting_id)
+        if not db_obj:
+            raise ValueError(f"Meeting with ID {meeting_id} does not exist.")
+
+        updated_obj = await self.update(db_obj=db_obj, obj_in=update_data)
+        return updated_obj
 
     async def delete_meeting(self, meeting_id: str) -> None:
         """Delete a meeting record from the database."""

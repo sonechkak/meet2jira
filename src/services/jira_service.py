@@ -24,7 +24,7 @@ class JiraService:
         self.server_url = server_url
         self.meeting_repository = MeetingRepository("meetings")
 
-    def _get_user_account_id(self, display_name: str) -> Optional[str]:
+    async def _get_user_account_id(self, display_name: str) -> Optional[str]:
         """Получение account_id пользователя по имени."""
 
         try:
@@ -44,7 +44,7 @@ class JiraService:
             logger.error(f"Ошибка поиска пользователя {display_name}: {str(e)}")
             return None
 
-    def _get_available_projects(self) -> str:
+    async def _get_available_projects(self) -> str:
         """
         Получение списка доступных проектов для вывода в ошибке
         """
@@ -55,7 +55,7 @@ class JiraService:
         except Exception:
             return "не удалось получить список"
 
-    def create_jira_task(
+    async def create_jira_task(
         self, task: ParsedTask, project_key: str, epic_key: Optional[str] = None
     ) -> CreateJiraTaskResponse:
         """Создание задачи в Jira."""
@@ -63,7 +63,7 @@ class JiraService:
         try:
             # Проверяем существование проекта
             try:
-                project = self.jira.project(project_key)
+                await self.jira.project(project_key)
             except Exception:
                 return CreateJiraTaskResponse(
                     status="error",
@@ -192,7 +192,7 @@ class JiraService:
             )
 
 
-def get_jira_service() -> JiraService:
+async def get_jira_service() -> JiraService:
     """Создание экземпляра JiraService из переменных окружения."""
 
     server_url = settings.JIRA_SERVER_URL
