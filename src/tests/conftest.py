@@ -29,23 +29,16 @@ def load_local_dev_env():
     return False
 
 
-@pytest.fixture
-def temp_media_root(settings):
-    """Фикстура для временной медиа-папки."""
-    tmpdir = tempfile.mkdtemp()
-    settings.MEDIA_ROOT = tmpdir
-    yield tmpdir
-    shutil.rmtree(tmpdir, ignore_errors=True)
-
-
 @pytest.fixture(autouse=True)
-def cleanup_after_test():
-    """Очистка временных файлов и папок после каждого теста."""
+def cleanup_after_test(tmp_path, monkeypatch):
+    """Переключаемся во временную директорию для каждого теста."""
+    # Сохраняем текущую директорию
+    original_cwd = os.getcwd()
+
+    # Переходим во временную директорию
+    monkeypatch.chdir(tmp_path)
+
     yield
-    # Cleanup после каждого теста
-    for path in ['pyproject', 'main', 'img']:
-        if os.path.exists(path):
-            if os.path.isdir(path):
-                shutil.rmtree(path)
-            else:
-                os.remove(path)
+
+    # Возвращаемся в исходную директорию
+    os.chdir(original_cwd)
