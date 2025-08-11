@@ -40,3 +40,9 @@ dev = [
     "ruff>=0.1.0",
     "mypy>=1.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest-mock>=3.14.1",
+    "standard-aifc>=3.13.0",
+]

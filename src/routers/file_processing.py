@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 @processing_router.post("/process")
-async def process_file(
+async def process_document(
     file: UploadFile = File(...), db: AsyncSessionLocal = Depends(get_db_session)
 ) -> ProcessingResponseSchema:
     """Endpoint to process a file."""
