@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 import bcrypt
+
 from src.database import AsyncSessionLocal
 from src.models.user import User
 

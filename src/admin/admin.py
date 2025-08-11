@@ -5,6 +5,7 @@ import uuid
 import bcrypt
 from fastadmin import SqlAlchemyModelAdmin, register
 from sqlalchemy import select, update
+
 from src.database import AsyncSessionLocal
 from src.models.meeting import Meeting
 from src.models.user import User

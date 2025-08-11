@@ -4,9 +4,9 @@ from datetime import datetime
 from typing import AsyncGenerator
 
 from sqlalchemy import Column, DateTime, MetaData
-from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
-                                    create_async_engine)
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
+
 from src.settings.config import settings
 
 logger = logging.getLogger(__name__)

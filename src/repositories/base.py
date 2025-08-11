@@ -4,6 +4,7 @@ from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 from pydantic import BaseModel
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.orm import selectinload
+
 from src.database import AsyncSessionLocal, Base
 
 # Type variables for generic repository

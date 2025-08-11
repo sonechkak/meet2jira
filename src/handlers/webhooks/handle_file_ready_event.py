@@ -2,6 +2,7 @@ import logging
 from io import BytesIO
 
 import aiohttp
+
 from src.pipeline.pipeline import process_document
 
 logger = logging.getLogger(__name__)

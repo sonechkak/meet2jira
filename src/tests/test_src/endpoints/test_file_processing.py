@@ -2,7 +2,6 @@ import aifc  # noqa
 from io import BytesIO
 
 
-
 def test_file_processing_endpoint_with_mocker(client, mocker):
     # Mock the file processing function
     mock_process_document = mocker.patch('src.routers.file_processing.process_document')
@@ -28,7 +27,7 @@ def test_file_processing_endpoint_with_mocker(client, mocker):
     result = response.json()
 
     assert result['status'] == 'success'
-    assert result['error'] == False
+    assert result['error'] == False  # noqa: E712
     assert result['document_name'] == 'test_file.txt'
 
     # Verify that the file processing function was called once

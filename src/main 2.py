@@ -6,10 +6,7 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 from starlette.staticfiles import StaticFiles
 
-from src.database import (
-    create_db_and_tables,
-    close_db_connection
-)
+from src.database import close_db_connection, create_db_and_tables
 from src.settings.config import settings
 
 # Configure logging
@@ -20,9 +17,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+from src.models.meeting import Meeting as MeetingModel
+
 # Добавляем модели в globals()
 from src.models.user import User as UserModel
-from src.models.meeting import Meeting as MeetingModel
 
 globals().update(User=UserModel, Meeting=MeetingModel)
 os.environ.update(
@@ -35,8 +33,8 @@ os.environ.update(
 async def run_migrations():
     """Запуск миграций программно"""
     try:
-        from alembic.config import Config
         from alembic import command
+        from alembic.config import Config
 
         # Создаем конфиг Alembic
         alembic_cfg = Config("alembic.ini")
@@ -113,15 +111,14 @@ async def root():
     }
 
 # Import admin
-import src.admin.admin
+
+# Mount admin app
+from fastadmin import fastapi_app as admin_app
 
 # Include routers
 from src.routers.auth import auth_router
 from src.routers.file_processing import processing_router
 from src.routers.utils import utils_router
-
-# Mount admin app
-from fastadmin import fastapi_app as admin_app
 
 # Mount the admin app
 app.mount(settings.ADMIN_PREFIX, admin_app)

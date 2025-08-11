@@ -1,7 +1,11 @@
 from typing import Any
 
-from fastadmin import (DashboardWidgetAdmin, DashboardWidgetType, WidgetType,
-                       register_widget)
+from fastadmin import (
+    DashboardWidgetAdmin,
+    DashboardWidgetType,
+    WidgetType,
+    register_widget,
+)
 from pydantic import fields
 from pydantic.v1.main import Model
 

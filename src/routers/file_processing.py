@@ -1,16 +1,19 @@
 import logging
 
 from fastapi import APIRouter, Depends, File, Request, UploadFile
+
 from src.database import AsyncSessionLocal, get_db_session
-from src.handlers.webhooks.handle_file_ready_event import \
-    handle_file_ready_event
+from src.handlers.webhooks.handle_file_ready_event import handle_file_ready_event
 from src.handlers.webhooks.handle_file_upload import handle_file_upload
 from src.pipeline.pipeline import process_document
 from src.schemas.jira.jira_schemas import JiraTaskRequest
 from src.schemas.processing.processing_schemas import (
-    AcceptResultRequestSchema, AcceptResultResponseSchema,
-    ProcessingResponseSchema, RejectProcessingRequestSchema,
-    RejectProcessingResponseSchema)
+    AcceptResultRequestSchema,
+    AcceptResultResponseSchema,
+    ProcessingResponseSchema,
+    RejectProcessingRequestSchema,
+    RejectProcessingResponseSchema,
+)
 from src.services.jira_service import JiraService, get_jira_service
 
 processing_router = APIRouter(

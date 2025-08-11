@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from fastapi.params import Depends
+
 from src.dependencies.auth import get_auth_repository, get_auth_service
 from src.repositories.auth import AuthRepository
 from src.schemas.auth.login import LoginRequestSchema, LoginResponseSchema

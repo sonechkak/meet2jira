@@ -5,11 +5,12 @@ from pathlib import Path
 from typing import AsyncGenerator
 
 from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
+from starlette.staticfiles import StaticFiles
+
 from src.database import close_db_connection, create_db_and_tables
 from src.schemas.main.root_schemas import RootResponseSchema
 from src.settings.config import settings
-from starlette.middleware.cors import CORSMiddleware
-from starlette.staticfiles import StaticFiles
 
 # Configure logging
 logging.basicConfig(
@@ -20,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 from src.models.meeting import Meeting as MeetingModel
+
 # Добавляем модели в globals()
 from src.models.user import User as UserModel
 
@@ -128,6 +130,7 @@ async def root() -> RootResponseSchema:
 
 # Mount admin app
 from fastadmin import fastapi_app as admin_app
+
 # Include routers
 from src.routers.auth import auth_router
 from src.routers.file_processing import processing_router

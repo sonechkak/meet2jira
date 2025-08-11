@@ -1,11 +1,10 @@
 import logging
 
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, File, HTTPException, UploadFile
 from starlette import status
 
 from src.pipeline.pipeline import process_document
 from src.schemas.auth.user import UserResponseSchema
-
 
 processing_router = APIRouter(
     prefix="/file",

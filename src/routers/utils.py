@@ -1,8 +1,11 @@
 import logging
 
 from fastapi import APIRouter, Depends, Request
-from src.schemas.debug.utils_schemas import (CreateSimpleTaskSchema,
-                                             JiraInfoResponseSchema)
+
+from src.schemas.debug.utils_schemas import (
+    CreateSimpleTaskSchema,
+    JiraInfoResponseSchema,
+)
 from src.services.jira_service import JiraService, get_jira_service
 from src.settings.config import settings
 

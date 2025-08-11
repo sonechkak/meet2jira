@@ -5,6 +5,7 @@ from select import select
 from typing import Optional
 
 import bcrypt
+
 from src.database import AsyncSessionLocal
 from src.models.user import User
 from src.repositories.auth import AuthRepository

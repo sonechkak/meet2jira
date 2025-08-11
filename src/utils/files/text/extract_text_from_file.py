@@ -9,6 +9,7 @@ from docx import Document
 from PIL import Image
 from pydub import AudioSegment
 from pypdf import PdfReader
+
 from src.utils.files.audio.get_audio_duration import get_audio_duration
 from src.utils.files.audio.process_audio_chunck import process_audio_chunk
 from src.utils.files.audio.split_audio_chunks import split_audio_chunks

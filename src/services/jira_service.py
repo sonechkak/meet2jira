@@ -3,11 +3,14 @@ from typing import Optional
 
 from fastapi import HTTPException
 from jira import JIRA
+
 from src.models.parsed_task import ParsedTask
 from src.repositories.meeting import MeetingRepository
-from src.schemas.jira.jira_schemas import (CreateJiraTaskResponse,
-                                           JiraTaskRequest,
-                                           ProcessTaskResponseSchema)
+from src.schemas.jira.jira_schemas import (
+    CreateJiraTaskResponse,
+    JiraTaskRequest,
+    ProcessTaskResponseSchema,
+)
 from src.settings.config import settings
 from src.utils.jira.parse_tasks_from_text import parse_tasks_from_text
 

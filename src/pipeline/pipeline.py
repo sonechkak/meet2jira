@@ -5,6 +5,7 @@ import os
 import tempfile
 
 from fastapi import File
+
 from src.schemas.processing.processing_schemas import ProcessingResponseSchema
 from src.services.llm_service import LlmService
 from src.tools.prompt_generator import PromptGenerator
@@ -81,7 +82,7 @@ async def process_document(
         raw_result = pipeline.run()
         if raw_result:
             logger.info("Pipeline успешно выполнен.")
-            updated_meeting_status = await meeting_service.update_meeting(
+            await meeting_service.update_meeting(
                 meeting_id=created_meeting.id,
                 meeting_data={
                     "status": "processed",

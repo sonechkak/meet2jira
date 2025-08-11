@@ -1,4 +1,5 @@
 from fastapi import Depends
+
 from src.database import AsyncSessionLocal, get_async_session
 from src.repositories.auth import AuthRepository
 from src.services.auth_service import AuthService
