@@ -43,7 +43,7 @@ def cleanup_after_test():
     """Очистка временных файлов и папок после каждого теста."""
     yield
     # Cleanup после каждого теста
-    for path in ['static', 'pyproject', 'main']:
+    for path in ['static', 'pyproject', 'main', 'img']:
         if os.path.exists(path):
             if os.path.isdir(path):
                 shutil.rmtree(path)
