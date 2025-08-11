@@ -5,6 +5,7 @@ repos:
       - id: check-yaml
       - id: end-of-file-fixer
       - id: trailing-whitespace
+        args: [--src, "src", --max-line-length=255]
 
   # Backend hooks
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -13,7 +14,7 @@ repos:
       - id: ruff
         name: ruff (python)
         types: [python]
-        args: ["--fix", "--fix-only", "--extend-ignore=E501,E203"]
+        args: [--src, "src", "--fix", "--fix-only", "--extend-ignore=E501,E203"]
 
   - repo: https://github.com/pycqa/isort
     rev: 6.0.1
@@ -21,13 +22,13 @@ repos:
       - id: isort
         name: isort (python)
         types: [python]
-        args: [-o, alembic, --src, "src"]
+        args: [--src, "src", -o, alembic, --src, "src"]
 
   - repo: https://github.com/pycqa/flake8
     rev: 6.1.0
     hooks:
       - id: flake8
-        args: ["--max-line-length=255", "--extend-ignore=E402,F401,F403,F405"]
+        args: [--src, "src", "--max-line-length=255", "--extend-ignore=E402,F401,F403,F405"]
 
   # Tests
   - repo: local
@@ -39,4 +40,4 @@ repos:
         types: [python]
         pass_filenames: false
         always_run: true
-        args: ["-v", "--tb=short"]
+        args: [--src, "src", "-v", "--tb=short"]
