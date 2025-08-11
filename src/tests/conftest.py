@@ -1,9 +1,11 @@
+import sys
+import pytest
 import logging
 import shutil
 import tempfile
-from pathlib import Path
 
-import pytest
+from pathlib import Path
+from dotenv import load_dotenv
 
 
 @pytest.fixture(autouse=True)
@@ -16,10 +18,7 @@ def disable_logging():
 
 @pytest.fixture(autouse=True, scope="session")
 def load_local_dev_env():
-    import sys
-
-    from dotenv import load_dotenv
-
+    """Загружает локальные переменные окружения из .env.local."""
     python_path = Path(__file__).resolve().parent.parent
     env_file = python_path.parent / ".env.local"
     sys.path.append(str(python_path))
