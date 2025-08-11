@@ -1,4 +1,5 @@
 import logging
+import os
 import shutil
 import sys
 import tempfile
@@ -35,3 +36,16 @@ def temp_media_root(settings):
     settings.MEDIA_ROOT = tmpdir
     yield tmpdir
     shutil.rmtree(tmpdir, ignore_errors=True)
+
+
+@pytest.fixture(autouse=True)
+def cleanup_after_test():
+    """Очистка временных файлов и папок после каждого теста."""
+    yield
+    # Cleanup после каждого теста
+    for path in ['static', 'pyproject', 'main']:
+        if os.path.exists(path):
+            if os.path.isdir(path):
+                shutil.rmtree(path)
+            else:
+                os.remove(path)
