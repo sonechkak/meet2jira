@@ -58,7 +58,6 @@ def parse_single_task(task_prefix: str, block: str) -> Optional[ParsedTask]:
 
         dependencies = []
         if dependencies_text and dependencies_text.lower() != "нет":
-            # Парсим зависимости как список TASK-xxx
             deps = re.findall(r"TASK-\d+", dependencies_text)
             dependencies = deps
 
