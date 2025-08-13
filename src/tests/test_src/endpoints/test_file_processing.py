@@ -1,5 +1,23 @@
 import aifc  # noqa
+import pytest
+
 from io import BytesIO
+from sqlalchemy import text
+
+from src.database import get_db_session
+
+
+@pytest.mark.asyncio
+async def test_db_connection():
+    """Тест подключения к БД"""
+    try:
+        async with get_db_session() as session:
+            result = await session.execute(text("SELECT 1 as test_value"))
+            assert result is not None
+            print("✅ Database connection test passed")
+    except Exception as e:
+        pytest.fail(f"Database connection failed: {e}")
+
 
 
 def test_file_processing_endpoint_with_mocker(client, mocker):

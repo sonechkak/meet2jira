@@ -28,12 +28,12 @@ logger = logging.getLogger(__name__)
 
 
 @processing_router.post("/process")
-async def process_document(
-    file: UploadFile = File(...), db: AsyncSessionLocal = Depends(get_db_session)
+async def upload_and_process_document(
+    file: UploadFile = File(...)
 ) -> ProcessingResponseSchema:
     """Endpoint to process a file."""
     try:
-        pipeline_response = await process_document(db_session=db, file=file)
+        pipeline_response = await process_document(file=file)
         logger.info(f"Pipeline response: {pipeline_response}.")
 
         return pipeline_response

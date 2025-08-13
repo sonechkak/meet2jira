@@ -43,6 +43,7 @@ dev = [
 
 [dependency-groups]
 dev = [
+    "pytest-asyncio>=1.1.0",
     "pytest-mock>=3.14.1",
     "standard-aifc>=3.13.0",
 ]

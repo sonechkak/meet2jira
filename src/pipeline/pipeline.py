@@ -10,10 +10,11 @@ from src.schemas.processing.processing_schemas import ProcessingResponseSchema
 from src.services.llm_service import LlmService
 from src.tools.prompt_generator import PromptGenerator
 from src.utils.files.text.extract_text_from_file import extract_text_from_file
+from src.database import AsyncSessionLocal, get_db_session
 
-from ..repositories.meeting import MeetingRepository
-from ..schemas.model.meeting import MeetingCreateSchema
-from ..services.meeting_service import MeetingService
+from src.repositories.meeting import MeetingRepository
+from src.schemas.model.meeting import MeetingCreateSchema
+from src.services.meeting_service import MeetingService
 from .elements.base import Pipeline
 
 logging.basicConfig(level=logging.DEBUG)
@@ -21,10 +22,9 @@ logger = logging.getLogger(__name__)
 
 
 async def process_document(
-    db_session, file: File, model: str = "yandex-gpt"
+    file: File, model: str = "yandex-gpt"
 ) -> ProcessingResponseSchema:
     """Функция для обработки документа с использованием Pipeline."""
-
     # Сохраняем файл временно
     with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
         content = await file.read()
@@ -44,29 +44,39 @@ async def process_document(
                 summary={},
             )
 
-        # Сохраняем извлеченный текст в БД
-        meeting_data = {
-            "title": f"Обработка файла {file.filename}",
-            "file_name": file.filename,
-            "description": f"Обработка файла {file.filename} с помощью модели {model}",
-            "meeting_date": datetime.datetime.now(),
-        }
-        meeting_schema = MeetingCreateSchema(**meeting_data)
-
-        async with db_session as session:
-            meeting_repo = MeetingRepository(session)
-            meeting_service = MeetingService(meeting_repo)
-
-            # Создаем запись встречи в БД
-            created_meeting = await meeting_service.create_meeting(meeting_schema)
-            logger.info(f"Создана запись встречи: {created_meeting}")
-
-        logger.info(f"Извлеченный текст длиной: {len(text)} символов")
-        logger.debug(
-            f"Extracted text: {text[:200]}..."
-        )  # Логируем первые 200 символов текста
+        # # Сохраняем извлеченный текст в БД
+        # meeting_data = {
+        #     "title": f"Обработка файла {file.filename}",
+        #     "file_name": file.filename,
+        #     "description": f"Обработка файла {file.filename} с помощью модели {model}",
+        #     "meeting_date": datetime.datetime.now(),
+        # }
+        # meeting_schema = MeetingCreateSchema(**meeting_data)
+        #
+        # logger.info(f"Создание записи встречи с данными: {meeting_schema}")
+        #
+        # try:
+        #     async with get_db_session() as session:
+        #         meeting_repo = MeetingRepository(session)
+        #         meeting_service = MeetingService(meeting_repo)
+        #
+        #         # Создаем запись встречи в БД
+        #         created_meeting = await meeting_service.create_meeting(meeting_schema)
+        #         logger.info(f"Создана запись встречи: {created_meeting}")
+        #
+        # except Exception as e:
+        #     logger.error(f"Ошибка при создании записи встречи: {str(e)}")
+        #     return ProcessingResponseSchema(
+        #         status="error",
+        #         error=True,
+        #         error_message=f"Failed to create meeting record: {str(e)}",
+        #         model=model,
+        #         document_name=file.filename,
+        #         summary={},
+        #     )
 
         # 2. Генерируем промпт для LLM
+        logger.info(f"Генерация промпта для модели {model} с текстом длиной {len(text)} символов")
         prompt_generator = PromptGenerator(text=text)
         prompt = prompt_generator.run()
 
@@ -80,15 +90,20 @@ async def process_document(
         )
 
         raw_result = pipeline.run()
-        if raw_result:
+        if raw_result and created_meeting:
             logger.info("Pipeline успешно выполнен.")
-            await meeting_service.update_meeting(
-                meeting_id=created_meeting.id,
-                meeting_data={
-                    "status": "processed",
-                    "summary": raw_result.get("results", []),
-                },
-            )
+            async with get_db_session() as session:
+                meeting_repo = MeetingRepository(session)
+                meeting_service_update = MeetingService(meeting_repo)
+
+                await meeting_service_update.update_meeting(
+                    meeting_id=created_meeting.id,
+                    meeting_data={
+                        "status": "processed",
+                        "summary": raw_result.get("results", []),
+                    },
+                )
+                logger.info("Запись в БД успешно обновлена")
         else:
             logger.error("Pipeline вернул пустой результат.")
 

@@ -14,5 +14,5 @@ async def get_meetings(db: AsyncSessionLocal = Depends(get_async_session)):
     """
     meeting_repository = MeetingRepository(db)
     meeting_service = MeetingService(meeting_repository)
-    meetings = await meeting_service.get_all_meetings()
+    meetings = await meeting_service.list_meetings()
     return meetings

@@ -44,23 +44,24 @@ const CONFIG = {
 // Утилиты
 const Utils = {
     getErrorMessage(error) {
-        console.log('=== ПОЛУЧЕНИЕ СООБЩЕНИЯ ОБ ОШИБКЕ ===');
-        console.log('Error input:', error);
+        console.log('=== GETTING ERROR MESSAGE ===');
         console.log('Error type:', typeof error);
+        console.log('Error:', error);
 
         if (typeof error === 'string') {
-            console.log('Error is string:', error);
+            console.log('String error:', error);
             return error;
         }
 
         if (error?.message) {
-            console.log('Error has message:', error.message);
+            console.log('Error.message:', error.message);
             return error.message;
         }
 
         if (error?.detail) {
-            console.log('Error has detail:', error.detail);
+            console.log('Error.detail:', error.detail);
             if (typeof error.detail === 'string') return error.detail;
+
             if (Array.isArray(error.detail)) {
                 return error.detail.map(err => {
                     const field = err.loc ? err.loc.join('.') : 'field';
@@ -71,7 +72,17 @@ const Utils = {
             return JSON.stringify(error.detail, null, 2);
         }
 
-        console.log('Returning default error message');
+        if (error?.error) {
+            console.log('Error.error:', error.error);
+            return error.error;
+        }
+
+        if (error?.error_message) {
+            console.log('Error.error_message:', error.error_message);
+            return error.error_message;
+        }
+
+        console.log('Fallback to unknown error');
         return 'Неизвестная ошибка';
     },
 
@@ -94,7 +105,18 @@ const Utils = {
 
     isValidFile(file) {
         const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
-        return CONFIG.allowedTypes.includes(file.type) || CONFIG.allowedExtensions.includes(fileExtension);
+        const isValidType = CONFIG.allowedTypes.includes(file.type);
+        const isValidExtension = CONFIG.allowedExtensions.includes(fileExtension);
+
+        console.log('File validation:', {
+            fileName: file.name,
+            fileType: file.type,
+            fileExtension: fileExtension,
+            isValidType: isValidType,
+            isValidExtension: isValidExtension
+        });
+
+        return isValidType || isValidExtension;
     },
 
     formatContent(content) {
@@ -102,6 +124,64 @@ const Utils = {
         if (Array.isArray(content)) return content.join('\n');
         if (typeof content === 'object' && content !== null) return JSON.stringify(content, null, 2);
         return String(content);
+    },
+
+    // Извлечение summary с учетом различных схем ответа
+    extractSummary(summaryData) {
+        console.log('=== ИЗВЛЕЧЕНИЕ SUMMARY ===');
+        console.log('Summary data:', summaryData);
+        console.log('Summary type:', typeof summaryData);
+
+        if (!summaryData) {
+            console.log('Summary is null/undefined');
+            return 'Нет данных для отображения';
+        }
+
+        // Если это строка
+        if (typeof summaryData === 'string') {
+            console.log('Summary is string:', summaryData);
+            return summaryData;
+        }
+
+        // Если это объект
+        if (typeof summaryData === 'object') {
+            console.log('Summary is object, keys:', Object.keys(summaryData));
+
+            // Список возможных полей где может быть контент
+            const possibleFields = [
+                'summary',           // SummaryResponseSchema.summary
+                'content',           // общее поле content
+                'text',              // общее поле text
+                'tasks',             // поле tasks
+                'response_text',     // LLMServiceResponseSchema.response_text
+                'response_data',     // LLMServiceResponseSchema.response_data
+                'data',              // общее поле data
+                'result',            // общее поле result
+                'value'              // общее поле value
+            ];
+
+            // Ищем непустое значение в порядке приоритета
+            for (const field of possibleFields) {
+                const value = summaryData[field];
+                if (value && value !== '' && value !== '{}' && JSON.stringify(value) !== '{}') {
+                    console.log(`Found content in field '${field}':`, value);
+
+                    // Если найденное значение тоже объект, попробуем извлечь из него
+                    if (typeof value === 'object') {
+                        return this.formatContent(value);
+                    }
+                    return String(value);
+                }
+            }
+
+            // Если ничего конкретного не найдено, форматируем весь объект
+            console.log('No specific field found, formatting entire object');
+            return this.formatContent(summaryData);
+        }
+
+        // Для других типов
+        console.log('Summary is other type, converting to string');
+        return String(summaryData);
     }
 };
 
@@ -141,24 +221,11 @@ const UI = {
     },
 
     showResult(result) {
-        console.log('Показываем результат:', result);
+        console.log('=== ПОКАЗ РЕЗУЛЬТАТА ===');
+        console.log('Full result:', result);
 
-        const fileIcon = Utils.getFileIcon(result.document_name || 'unknown.txt');
-
-        // Извлекаем summary из результата
-        let summaryContent = '';
-        if (result.summary) {
-            if (typeof result.summary === 'string') {
-                summaryContent = result.summary;
-            } else if (typeof result.summary === 'object') {
-                summaryContent = result.summary.content ||
-                                result.summary.text ||
-                                result.summary.tasks ||
-                                JSON.stringify(result.summary, null, 2);
-            }
-        }
-
-        summaryContent = Utils.formatContent(summaryContent) || 'Нет данных для отображения';
+        const fileIcon = Utils.getFileIcon(result.document_name || 'unknown');
+        const summaryContent = Utils.extractSummary(result.summary);
 
         const resultId = `result-${Date.now()}`;
         const summaryId = `summary-${Date.now()}`;
@@ -203,7 +270,6 @@ const UI = {
         }, 100);
     },
 
-    // Добавляем недостающие методы
     getTaskWord(count) {
         if (count % 10 === 1 && count % 100 !== 11) return 'задача';
         if ([2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100)) return 'задачи';
@@ -228,7 +294,10 @@ const UI = {
 const Actions = {
     async processFile() {
         const file = fileInput.files[0];
-        if (!file) return;
+        if (!file) {
+            console.log('No file selected');
+            return;
+        }
 
         console.log('=== НАЧАЛО ОБРАБОТКИ ФАЙЛА ===');
         console.log('Файл:', file.name, file.type, file.size);
@@ -241,6 +310,7 @@ const Actions = {
         UI.setProcessingState(true);
         UI.clearMessage();
 
+        // Создаем минимальный FormData с только файлом
         const formData = new FormData();
         formData.append('file', file);
 
@@ -249,38 +319,96 @@ const Actions = {
 
             const response = await fetch('/file/process', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                // НЕ добавляем Content-Type header - браузер установит его автоматически с boundary
             });
 
             console.log('=== ОТВЕТ СЕРВЕРА ===');
             console.log('Status:', response.status);
-            console.log('Status Text:', response.statusText);
             console.log('OK:', response.ok);
+            console.log('Headers:', Object.fromEntries(response.headers.entries()));
 
-            const result = await response.json();
-            console.log('=== PARSED JSON ===');
-            console.log('Full result object:', result);
-            console.log('result.status:', result.status);
-            console.log('result.error:', result.error);
-            console.log('result.error_message:', result.error_message);
+            // Проверяем Content-Type ответа
+            const contentType = response.headers.get('content-type');
+            console.log('Response Content-Type:', contentType);
 
-            // Проверяем успешность
-            if (response.ok && result.status === "success" && !result.error) {
+            if (!response.ok) {
+                // Если ответ не успешный, пытаемся получить текст ошибки
+                let errorText;
+                try {
+                    if (contentType && contentType.includes('application/json')) {
+                        const errorData = await response.json();
+                        errorText = Utils.getErrorMessage(errorData);
+                    } else {
+                        errorText = await response.text();
+                    }
+                } catch (parseError) {
+                    console.error('Error parsing error response:', parseError);
+                    errorText = `HTTP ${response.status}: ${response.statusText}`;
+                }
+                throw new Error(errorText);
+            }
+
+            // Получаем и парсим успешный ответ
+            let result;
+            try {
+                if (contentType && contentType.includes('application/json')) {
+                    result = await response.json();
+                } else {
+                    const responseText = await response.text();
+                    console.log('Raw response text:', responseText);
+                    try {
+                        result = JSON.parse(responseText);
+                    } catch (jsonError) {
+                        console.error('Failed to parse JSON:', jsonError);
+                        throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}...`);
+                    }
+                }
+            } catch (parseError) {
+                console.error('Error parsing response:', parseError);
+                throw new Error('Не удалось обработать ответ сервера');
+            }
+
+            console.log('=== PARSED RESPONSE ===');
+            console.log('Full result:', result);
+            console.log('Result keys:', Object.keys(result));
+
+            // Улучшенная проверка успешности ответа
+            const isSuccess = result.status === "success" && !result.error;
+            const hasValidSummary = result.summary !== undefined && result.summary !== null;
+
+            console.log('Success check:', {
+                status: result.status,
+                error: result.error,
+                isSuccess: isSuccess,
+                hasValidSummary: hasValidSummary
+            });
+
+            if (isSuccess && hasValidSummary) {
                 console.log('✅ SUCCESS - показываем результат');
                 UI.showResult(result);
                 UI.showMessage('Документ успешно обработан!', 'success');
             } else {
                 console.log('❌ FAILURE - условие не выполнено');
-                const errorMsg = result.error_message || Utils.getErrorMessage(result);
+                console.log('Result status:', result.status);
+                console.log('Result error:', result.error);
+                console.log('Result error_message:', result.error_message);
+
+                const errorMsg = result.error_message ||
+                                result.error ||
+                                Utils.getErrorMessage(result) ||
+                                'Ошибка обработки файла';
                 throw new Error(errorMsg);
             }
+
         } catch (error) {
             console.error('=== ОШИБКА В CATCH ===');
             console.error('Error:', error);
             console.error('Error message:', error.message);
             console.error('Error stack:', error.stack);
 
-            UI.showMessage(`Ошибка: ${Utils.getErrorMessage(error)}`, 'error');
+            const errorMessage = Utils.getErrorMessage(error);
+            UI.showMessage(`Ошибка: ${errorMessage}`, 'error');
         } finally {
             console.log('=== ЗАВЕРШЕНИЕ ОБРАБОТКИ ===');
             UI.setProcessingState(false);
@@ -290,6 +418,11 @@ const Actions = {
 
     copySummary(elementId) {
         const element = document.getElementById(elementId);
+        if (!element) {
+            console.error('Element not found:', elementId);
+            return;
+        }
+
         const text = element.textContent || element.innerText;
 
         navigator.clipboard.writeText(text).then(() => {
@@ -309,6 +442,11 @@ const Actions = {
 
     async createJiraTasks(resultId) {
         const resultCard = document.getElementById(resultId);
+        if (!resultCard) {
+            console.error('Result card not found:', resultId);
+            return;
+        }
+
         const buttons = resultCard.querySelectorAll('.feedback-btn');
         const acceptBtn = resultCard.querySelector('.accept-btn');
         const jiraPlaceholder = document.getElementById(`jira-${resultId}`);
@@ -322,6 +460,7 @@ const Actions = {
         buttons.forEach(btn => btn.disabled = true);
 
         try {
+            // Минимальный объект запроса
             const requestData = {
                 result_id: resultId,
                 tasks_text: tasksText,
@@ -333,30 +472,62 @@ const Actions = {
 
             const response = await fetch('/file/accept', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify(requestData)
             });
 
-            const result = await response.json();
-            console.log('Ответ сервера:', result);
+            console.log('=== JIRA RESPONSE DEBUG ===');
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
 
-            if (response.ok && result.status === "success" && !result.error && result.jira_result) {
-                const createdCount = result.jira_result.created_tasks?.length || 0;
-                const errorsCount = result.jira_result.errors?.length || 0;
+            if (!response.ok) {
+                let errorText;
+                try {
+                    const errorData = await response.json();
+                    errorText = Utils.getErrorMessage(errorData);
+                } catch {
+                    errorText = `HTTP ${response.status}: ${response.statusText}`;
+                }
+                throw new Error(errorText);
+            }
+
+            const result = await response.json();
+            console.log('Full response:', result);
+
+            const isSuccess = result.status === "success" && !result.error;
+
+            if (isSuccess) {
+                // Ищем jira_result в разных местах
+                const jiraData = result.jira_result || result.task_result || result.data || result;
+
+                console.log('Jira data:', jiraData);
+
+                const createdCount = jiraData.created_tasks?.length ||
+                                   jiraData.tasks?.length || 0;
+                const errorsCount = jiraData.errors?.length || 0;
 
                 let jiraHTML = '';
                 let statusMessage = '';
 
-                if (result.jira_result.success && createdCount > 0) {
+                // Проверяем успешность создания задач
+                const isJiraSuccess = jiraData.success === true ||
+                                    jiraData.status === "success" ||
+                                    createdCount > 0;
+
+                if (isJiraSuccess && createdCount > 0) {
+                    const tasks = jiraData.created_tasks || jiraData.tasks || [];
+
                     jiraHTML = `
                         <div class="jira-success">
                             <h4>✅ Создано задач в Jira: ${createdCount}</h4>
                             <div class="jira-tasks-list">
-                                ${result.jira_result.created_tasks.map((task, index) => `
+                                ${tasks.map((task, index) => `
                                     <div class="jira-task-item">
                                         <span class="task-number">${index + 1}.</span>
-                                        <a href="${task.url}" target="_blank" class="jira-task-link">
-                                            🎯 <strong>${task.key}</strong>: ${Utils.escapeHtml(task.title)}
+                                        <a href="${task.url || '#'}" target="_blank" class="jira-task-link">
+                                            🎯 <strong>${task.key || 'TASK-' + (index + 1)}</strong>: ${Utils.escapeHtml(task.title || task.summary || 'Задача создана')}
                                         </a>
                                     </div>
                                 `).join('')}
@@ -364,53 +535,53 @@ const Actions = {
                         </div>
                     `;
                     statusMessage = `Создано ${createdCount} ${UI.getTaskWord(createdCount)} в Jira`;
-                } else if (createdCount === 0 && errorsCount > 0) {
+                } else if (errorsCount > 0) {
                     jiraHTML = `
                         <div class="jira-error">
-                            <h4>❌ Задачи не созданы (${errorsCount} ${UI.getErrorWord(errorsCount)})</h4>
+                            <h4>❌ Ошибки при создании задач (${errorsCount})</h4>
                         </div>
                     `;
-                    statusMessage = `Не удалось создать задачи в Jira`;
+                    statusMessage = `Ошибки при создании задач`;
+                } else {
+                    // Показываем что получили для отладки
+                    jiraHTML = `
+                        <div class="jira-info">
+                            <h4>ℹ️ Ответ от сервера</h4>
+                            <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; font-size: 12px; max-height: 200px; overflow-y: auto;">${JSON.stringify(result, null, 2)}</pre>
+                        </div>
+                    `;
+                    statusMessage = 'Получен ответ от сервера';
                 }
 
                 // Показываем ошибки если есть
-                if (errorsCount > 0) {
+                if (errorsCount > 0 && jiraData.errors) {
                     jiraHTML += `
                         <div class="jira-warnings">
-                            <h4>⚠️ Предупреждения (${errorsCount}):</h4>
+                            <h4>⚠️ Ошибки (${errorsCount}):</h4>
                             <ul>
-                                ${result.jira_result.errors.map((error, index) =>
-                        `<li><strong>${index + 1}.</strong> ${Utils.escapeHtml(error)}</li>`
+                                ${jiraData.errors.map((error, index) =>
+                        `<li><strong>${index + 1}.</strong> ${Utils.escapeHtml(String(error))}</li>`
                     ).join('')}
                             </ul>
                         </div>
                     `;
                 }
 
-                // Добавляем статусный бейдж
-                jiraHTML += `
-                    <div class="result-summary">
-                        <div class="status-badge ${UI.getStatusClass(result.jira_result)}">
-                            ${statusMessage}
-                        </div>
-                    </div>
-                `;
-
                 // Отображаем результаты
                 jiraPlaceholder.innerHTML = jiraHTML;
                 jiraPlaceholder.style.display = 'block';
 
                 // Обновляем кнопки
-                acceptBtn.innerHTML = '✅ Задачи созданы в Jira';
+                acceptBtn.innerHTML = '✅ Обработано';
                 acceptBtn.style.opacity = '0.7';
 
                 // Добавляем визуальный статус
                 resultCard.classList.add('feedback-positive');
 
-                const message = result.error_message || `Создано ${createdCount} ${UI.getTaskWord(createdCount)} в Jira!`;
-                UI.showMessage(message, 'success');
+                UI.showMessage(statusMessage, 'success');
 
             } else {
+                // Обработка ошибки
                 const errorMsg = result.error_message || Utils.getErrorMessage(result) || 'Ошибка создания задач в Jira';
                 throw new Error(errorMsg);
             }
@@ -436,6 +607,11 @@ const Actions = {
 
     async giveFeedback(resultId, feedbackType) {
         const resultCard = document.getElementById(resultId);
+        if (!resultCard) {
+            console.error('Result card not found:', resultId);
+            return;
+        }
+
         const buttons = resultCard.querySelectorAll('.feedback-btn');
         const targetButton = resultCard.querySelector(`.${feedbackType}-btn`);
 
@@ -448,34 +624,48 @@ const Actions = {
             const summaryElement = resultCard.querySelector('.summary-content');
             const tasksText = summaryElement ? (summaryElement.textContent || summaryElement.innerText) : '';
 
+            // Минимальный объект запроса
             const requestData = {
                 result_id: resultId,
                 tasks_text: tasksText,
                 feedback_type: feedbackType,
                 reason: 'Результат отклонен пользователем',
-                timestamp: new Date().toISOString()
             };
 
             console.log('Отправляем обратную связь:', requestData);
 
             const response = await fetch('/file/reject', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify(requestData)
             });
 
-            const result = await response.json();
-            console.log('Ответ сервера:', result);
+            if (!response.ok) {
+                let errorText;
+                try {
+                    const errorData = await response.json();
+                    errorText = Utils.getErrorMessage(errorData);
+                } catch {
+                    errorText = `HTTP ${response.status}: ${response.statusText}`;
+                }
+                throw new Error(errorText);
+            }
 
-            if (response.ok && result.status === "success" && !result.error) {
+            const result = await response.json();
+            console.log('Ответ сервера на reject:', result);
+
+            const isSuccess = result.status === "success" && !result.error;
+
+            if (isSuccess) {
                 targetButton.innerHTML = '❌ Учтено';
                 targetButton.style.opacity = '0.7';
 
                 // Добавляем визуальный статус
                 resultCard.classList.add('feedback-negative');
 
-                const message = result.error_message || 'Обратная связь учтена!';
-                UI.showMessage(message, 'success');
+                UI.showMessage('Обратная связь учтена!', 'success');
             } else {
                 const errorMsg = result.error_message || Utils.getErrorMessage(result) || 'Ошибка отправки обратной связи';
                 throw new Error(errorMsg);
@@ -522,11 +712,29 @@ const DragDrop = {
 
 // Инициализация событий
 function initializeEventListeners() {
+    // Проверяем что все элементы существуют
+    if (!fileInput) {
+        console.error('fileInput element not found');
+        return;
+    }
+    if (!uploadArea) {
+        console.error('uploadArea element not found');
+        return;
+    }
+
     fileInput.addEventListener('change', Actions.processFile);
     uploadArea.addEventListener('dragover', DragDrop.handleDragOver);
     uploadArea.addEventListener('dragleave', DragDrop.handleDragLeave);
     uploadArea.addEventListener('drop', DragDrop.handleDrop);
+
+    console.log('Event listeners initialized');
 }
 
 // Запуск приложения
-document.addEventListener('DOMContentLoaded', initializeEventListeners);
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('=== DOM LOADED ===');
+    initializeEventListeners();
+});
+
+// Экспортируем Actions для глобального доступа
+window.Actions = Actions;
