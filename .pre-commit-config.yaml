@@ -26,10 +26,12 @@ repos:
         files: ^src/
 
   - repo: https://github.com/pycqa/flake8
-    rev: 6.1.0
+    rev: 6.0.0
     hooks:
       - id: flake8
-        args: ["--max-line-length=255", "--extend-ignore=E402,F401,F403,F405,F811"]
+        name: flake8 (python)
+        types: [python]
+        args: ["--extend-ignore=E501,E203"]
         files: ^src/
 
   # Tests
