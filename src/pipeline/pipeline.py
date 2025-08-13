@@ -44,36 +44,36 @@ async def process_document(
                 summary={},
             )
 
-        # # Сохраняем извлеченный текст в БД
-        # meeting_data = {
-        #     "title": f"Обработка файла {file.filename}",
-        #     "file_name": file.filename,
-        #     "description": f"Обработка файла {file.filename} с помощью модели {model}",
-        #     "meeting_date": datetime.datetime.now(),
-        # }
-        # meeting_schema = MeetingCreateSchema(**meeting_data)
-        #
-        # logger.info(f"Создание записи встречи с данными: {meeting_schema}")
-        #
-        # try:
-        #     async with get_db_session() as session:
-        #         meeting_repo = MeetingRepository(session)
-        #         meeting_service = MeetingService(meeting_repo)
-        #
-        #         # Создаем запись встречи в БД
-        #         created_meeting = await meeting_service.create_meeting(meeting_schema)
-        #         logger.info(f"Создана запись встречи: {created_meeting}")
-        #
-        # except Exception as e:
-        #     logger.error(f"Ошибка при создании записи встречи: {str(e)}")
-        #     return ProcessingResponseSchema(
-        #         status="error",
-        #         error=True,
-        #         error_message=f"Failed to create meeting record: {str(e)}",
-        #         model=model,
-        #         document_name=file.filename,
-        #         summary={},
-        #     )
+        # Сохраняем извлеченный текст в БД
+        meeting_data = {
+            "title": f"Обработка файла {file.filename}",
+            "file_name": file.filename,
+            "description": f"Обработка файла {file.filename} с помощью модели {model}",
+            "meeting_date": datetime.datetime.now(),
+        }
+        meeting_schema = MeetingCreateSchema(**meeting_data)
+
+        logger.info(f"Создание записи встречи с данными: {meeting_schema}")
+
+        try:
+            async with get_db_session() as session:
+                meeting_repo = MeetingRepository(session)
+                meeting_service = MeetingService(meeting_repo)
+
+                # Создаем запись встречи в БД
+                created_meeting = await meeting_service.create_meeting(meeting_schema)
+                logger.info(f"Создана запись встречи: {created_meeting}")
+
+        except Exception as e:
+            logger.error(f"Ошибка при создании записи встречи: {str(e)}")
+            return ProcessingResponseSchema(
+                status="error",
+                error=True,
+                error_message=f"Failed to create meeting record: {str(e)}",
+                model=model,
+                document_name=file.filename,
+                summary={},
+            )
 
         # 2. Генерируем промпт для LLM
         logger.info(f"Генерация промпта для модели {model} с текстом длиной {len(text)} символов")
