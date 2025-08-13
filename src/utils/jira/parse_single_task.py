@@ -16,11 +16,9 @@ def parse_single_task(task_prefix: str, block: str) -> Optional[ParsedTask]:
         title_match = re.search(r"^([^\n]+)", block)
         origin_title = title_match.group(1).strip() if title_match else "Без названия"
 
-        title_words = origin_title.split()[
-            :5
-        ]  # Ограничиваем заголовок первыми 5 словами
+        title_words = origin_title.split()[:5]
         short_title = " ".join(title_words)
-        if len(short_title) > 100:  # Ограничиваем длину заголовка до 80 символов
+        if len(short_title) > 100:
             title = short_title[:77] + "..."
         else:
             title = short_title

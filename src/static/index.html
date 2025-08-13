@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Обработка документов</title>
     <link rel="stylesheet" href="css/index.css" />
+    <link rel="stylesheet" href="css/feedback.css" />
 </head>
 <body>
     <div class="container">
@@ -48,26 +49,24 @@
                 </div>
             </div>
 
-            <div id="message">
-                <div class="results-section" id="resultsSection">
-                    <h2 class="section-title">📝 Результат обработки</h2>
-                    <div id="resultsList"></div>
-                </div>
-                <div class="meetings-section">
+            <div class="meetings-section">
                 <div class="meetings-header">
                     <h2 class="section-title">📅 Все встречи</h2>
                     <button class="refresh-btn" onclick="refreshMeetings()">🔄 Обновить</button>
                 </div>
-                <div class="meetings-list" id="meetingsList">
-                    <!-- Встречи будут загружены здесь -->
-                </div>
+                <div class="meetings-list" id="meetingsList"></div>
             </div>
 
+            <div id="message" class="message-container"></div>
 
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <h2 class="section-title">📝 Результат обработки</h2>
+                <div id="resultsList"></div>
+            </div>
         </div>
-            </div>
-
     </div>
+
+    <script src="js/feedback.js"></script>
     <script src="js/index.js"></script>
     <script src="js/meeting.js"></script>
 </body>

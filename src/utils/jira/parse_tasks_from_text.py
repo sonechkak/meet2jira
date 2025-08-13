@@ -11,14 +11,17 @@ logger = logging.getLogger(__name__)
 
 def parse_tasks_from_text(text: str) -> List[ParsedTask]:
     """Parse multiple tasks from a text string."""
+
+    if not text or not text.strip():
+        logger.warning("Пустой текст для парсинга задач")
+        return []
+
     tasks = []
 
     # Split the text into blocks based on the TASK-xxx pattern
     task_blocks = re.split(r"### TASK-\d+:", text)
 
-    for i, block in enumerate(
-        task_blocks[1:], 1
-    ):  # Missing the first block as it doesn't start with TASK-xxx
+    for i, block in enumerate(task_blocks[1:], 1):
         try:
             task = parse_single_task(f"TASK-{i:03d}", block.strip())
             if task:
