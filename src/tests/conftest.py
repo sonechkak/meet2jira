@@ -32,13 +32,8 @@ def load_local_dev_env():
 @pytest.fixture(autouse=True)
 def cleanup_after_test(tmp_path, monkeypatch):
     """Переключаемся во временную директорию для каждого теста."""
-    # Сохраняем текущую директорию
     original_cwd = os.getcwd()
-
-    # Переходим во временную директорию
     monkeypatch.chdir(tmp_path)
-
     yield
-
-    # Возвращаемся в исходную директорию
+    # Возвращаемся в исходную директорию после теста
     os.chdir(original_cwd)

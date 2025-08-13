@@ -174,7 +174,6 @@ def test_accept_result_jira_service_exception(client, valid_accept_request, monk
     response_data = response.json()
     assert response_data["status"] == "error"
     assert response_data["error"] is True
-    # Убираем проверку jira_result, так как при исключении он может быть undefined
 
 
 def test_accept_result_invalid_data(client):
@@ -202,7 +201,6 @@ def test_accept_result_missing_required_fields(client):
 
 
 # Тесты для POST /file/webhook endpoint
-
 def test_webhook_file_upload_event(client, webhook_file_upload_data, monkeypatch):
     """Тест webhook с событием file_upload."""
 
