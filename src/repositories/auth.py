@@ -11,7 +11,6 @@ class AuthRepositoryError(Exception):
     """Base class for authentication repository errors."""
 
 
-
 class AuthRepository(BaseRepository[User, UserCreateSchema, UserUpdateSchema]):
     """Repository for user authentication and management."""
 

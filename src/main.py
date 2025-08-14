@@ -138,7 +138,7 @@ from src.routers.utils import utils_router
 app.mount(settings.ADMIN_PREFIX, admin_app)
 
 # Import admin
-from src.admin.admin import MeetingAdmin, UserAdmin  # noqa
+from src.admin.admin import MeetingAdmin, UserAdmin  # noqa: F401
 
 # Include routers
 app.include_router(auth_router, tags=["Authentication"])
