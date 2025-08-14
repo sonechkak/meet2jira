@@ -33,12 +33,12 @@ def sample_pdf_file():
 
 @pytest.fixture
 def valid_accept_request():
-    """Валидные данные для accept endpoint."""
+    """Валидные данные для accept endpoint с правильным форматом задач."""
     return {
         "result_id": "result_12345",
-        "tasks_text": "Задача 1: Разработать API\nЗадача 2: Написать тесты\nЗадача 3: Создать документацию",
-        "project_key": "MYPROJ",
-        "epic_key": "MYPROJ-100"
+        "tasks_text": "### TASK-001: Разработать API\n### TASK-002: Написать тесты\n### TASK-003: Создать документацию",
+        "project_key": "MEET2JIRA",
+        "epic_key": "MEET2JIRA-100"
     }
 
 
@@ -77,7 +77,7 @@ def valid_accept_request():
     return {
         "result_id": "result_12345",
         "tasks_text": "Задача 1: Разработать API\nЗадача 2: Написать тесты\nЗадача 3: Создать документацию",
-        "project_key": "MYPROJ",
+        "project_key": "MEET2JIRA",
         "epic_key": "MYPROJ-100"
     }
 

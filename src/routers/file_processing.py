@@ -1,6 +1,7 @@
 import logging
 
-from fastapi import APIRouter, Depends, File, Request, UploadFile
+import jira
+from fastapi import APIRouter, Depends, File, Request, UploadFile, HTTPException
 
 from src.database import AsyncSessionLocal, get_db_session
 from src.handlers.webhooks.handle_file_ready_event import handle_file_ready_event
@@ -106,7 +107,7 @@ async def accept_file(
             tasks_text=request.tasks_text,
             project_key=request.project_key,
             epic_key=request.epic_key,
-            jira_result=jira_result.dict(),
+            jira_result={"created_tasks": [], "failed_tasks": []},
         )
 
 

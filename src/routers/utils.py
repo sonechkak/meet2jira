@@ -88,7 +88,7 @@ async def debug_jira_info() -> JiraInfoResponseSchema:
 
 @utils_router.post("/debug/create-simple-task")
 async def create_simple_task(
-    project_key: str = "LEARNJIRA",
+    project_key: str = "MEET2JIRA",
     jira_service: JiraService = Depends(get_jira_service),
 ) -> CreateSimpleTaskSchema:
     """

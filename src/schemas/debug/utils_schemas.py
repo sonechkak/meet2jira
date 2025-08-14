@@ -5,7 +5,7 @@ class JiraInfoResponseSchema(BaseModel):
     status: str = "success"
     error: bool = False
     error_message: str = None
-    project_key: str = "LEARNJIRA"
+    project_key: str = "MEET2JIRA"
     current_user: str = None
     total_projects: int = 0
     projects: list = []

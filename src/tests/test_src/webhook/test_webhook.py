@@ -22,7 +22,7 @@ def test_webhook_with_jira_creation():
     webhook_data = {
         "event": "file_upload",
         "webhook_id": "jira_test_123",
-        "project_key": "LEARNJIRA",
+        "project_key": "MEET2JIRA",
         "epic_key": "TEST-1",
         "file": {
             "name": "requirements_for_jira.txt",

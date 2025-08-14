@@ -30,7 +30,7 @@ class AcceptResultResponseSchema(BaseModel):
     message: str = None
     result_id: str = None
     tasks_text: str = None
-    project_key: str = "LEARNJIRA"
+    project_key: str = "MEET2JIRA"
     epic_key: str = None
     jira_result: dict = None
 
@@ -46,7 +46,7 @@ class RejectProcessingRequestSchema(BaseModel):
 class AcceptResultRequestSchema(BaseModel):
     result_id: str
     tasks_text: str
-    project_key: str = "LEARNJIRA"
+    project_key: str = "MEET2JIRA"
     epic_key: str = None
 
 

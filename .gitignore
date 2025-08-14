@@ -363,3 +363,4 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/python,pycharm,linux,macos,windows
 n!/src/meet2jira.db
 !/src/meet2jira.db
+.env.local

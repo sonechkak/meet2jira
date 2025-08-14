@@ -37,3 +37,18 @@ def cleanup_after_test(tmp_path, monkeypatch):
     yield
     # Возвращаемся в исходную директорию после теста
     os.chdir(original_cwd)
+
+
+@pytest.fixture(autouse=True)
+def jira_client():
+    """
+    Фикстура для использования клиента Jira в тестах.
+    """
+    from src.services.jira_service import JiraService
+    jira_service = JiraService(
+        server_url=os.getenv("JIRA_API_URL"),
+        username=os.getenv("JIRA_API_USER"),
+        api_token=os.getenv("JIRA_API_TOKEN")
+    )
+    jira_client = jira_service._get_jira_client()
+    yield jira_client

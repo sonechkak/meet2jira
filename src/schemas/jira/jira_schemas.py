@@ -16,8 +16,9 @@ class TaskData(BaseModel):
 
 class JiraTaskRequest(BaseModel):
     tasks_text: str
-    project_key: str = "LEARNJIRA"
+    project_key: str = "MEET2JIRA"
     epic_key: Optional[str] = None
+    options: Optional[Dict[str, str]] = None
 
 
 class ProcessTaskResponseSchema(BaseModel):

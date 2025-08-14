@@ -133,7 +133,7 @@ const FeedbackManager = {
         return {
             result_id: resultId,
             tasks_text: tasksText.trim(),
-            project_key: options.projectKey || 'LEARNJIRA',
+            project_key: options.projectKey || 'MEET2JIRA',
             epic_key: options.epicKey || '',
             assignee: options.assignee || null,
             priority: options.priority || 'Medium',

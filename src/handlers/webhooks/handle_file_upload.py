@@ -29,7 +29,7 @@ async def handle_file_upload(data: dict, jira_service: JiraService):
 
             if tasks_text:
                 # 4. Получаем параметры Jira из веб-хука или используем дефолтные
-                project_key = data.get("project_key", "LEARNJIRA")
+                project_key = data.get("project_key", "MEET2JIRA")
                 epic_key = data.get("epic_key")
 
                 logger.info(f"Creating Jira tasks for project: {project_key}")
