@@ -113,16 +113,18 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 async def root() -> RootResponseSchema:
     """Root endpoint that returns basic information about the API."""
     db_status = await create_db_and_tables()
-    return RootResponseSchema(
-        status="success",
-        message="Welcome to Meet2Jira API",
-        version=settings.app_version,
-        environment=settings.environment,
-        database_status="connected" if db_status else "disconnected",
-        database_uri=settings.SQLALCHEMY_DATABASE_URI,
-        docs_url=settings.docs_url,
-        redoc_url=settings.redoc_url,
-    )
+    raw_result = {
+        "status": "success",
+        "message": "Welcome to Meet2Jira API",
+        "version": settings.app_version,
+        "environment": settings.environment,
+        "database_status": "connected" if db_status else "disconnected",
+        "database_uri": settings.SQLALCHEMY_DATABASE_URI,
+        "docs_url": settings.docs_url,
+        "redoc_url": settings.redoc_url,
+    }
+    validated_result = RootResponseSchema.model_validate(raw_result)
+    return validated_result
 
 
 # Mount admin app

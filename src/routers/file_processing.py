@@ -41,13 +41,15 @@ async def upload_and_process_document(
 
     except Exception as e:
         logger.error(f"Error processing file: {str(e)}")
-        return ProcessingResponseSchema(
-            status="error",
-            error=True,
-            error_message=str(e),
-            document_name=file.filename,
-            summary={},
-        )
+        raw_result = {
+            "status": "error",
+            "error": True,
+            "error_message": str(e),
+            "document_name": file.filename,
+            "summary": {},
+        }
+        validated_result = ProcessingResponseSchema.model_validate(raw_result)
+        return validated_result
 
 
 @processing_router.post("/reject")
@@ -55,8 +57,13 @@ async def reject_processing(
     request: RejectProcessingRequestSchema,
 ) -> RejectProcessingResponseSchema:
     """Endpoint to reject a file."""
-
-    return RejectProcessingResponseSchema(status="success", error=False)
+    raw_result = {
+        "status": "success",
+        "error": False,
+        "error_message": "Результат отклонен.",
+    }
+    validated_result = RejectProcessingResponseSchema.model_validate(raw_result)
+    return validated_result
 
 
 @processing_router.post("/accept")
@@ -76,26 +83,31 @@ async def accept_file(
         logger.info(f"Jira result: {jira_result}")
 
         if not jira_result.created_tasks:
-            return AcceptResultResponseSchema(
-                status="error",
-                error=True,
-                error_message="Не удалось создать задачи в Jira. Проверьте текст задач и настройки проекта.",
-                result_id=request.result_id,
-                tasks_text=request.tasks_text,
-                project_key=request.project_key,
-                epic_key=request.epic_key,
-                jira_result=jira_result.model_dump(),
-            )
-        return AcceptResultResponseSchema(
-            status="success",
-            error=False,
-            message="Результат принят и задачи созданы в Jira!",
-            result_id=request.result_id,
-            tasks_text=request.tasks_text,
-            project_key=request.project_key,
-            epic_key=request.epic_key,
-            jira_result=jira_result.model_dump(),
-        )
+            raw_result = {
+                "status": "error",
+                "error": True,
+                "error_message": "Не удалось создать задачи в Jira. Проверьте текст задач и настройки проекта.",
+                "result_id": request.result_id,
+                "tasks_text": request.tasks_text,
+                "project_key": request.project_key,
+                "epic_key": request.epic_key,
+                "jira_result": jira_result.model_dump(),
+            }
+            validated_result = AcceptResultResponseSchema.model_validate(raw_result)
+            return validated_result
+        raw_result = {
+            "status": "success",
+            "error": False,
+            "error_message": None,
+            "message": "Задачи успешно созданы в Jira.",
+            "result_id": request.result_id,
+            "tasks_text": request.tasks_text,
+            "project_key": request.project_key,
+            "epic_key": request.epic_key,
+            "jira_result": jira_result.model_dump(),
+        }
+        validated_result = AcceptResultResponseSchema.model_validate(raw_result)
+        return validated_result
 
     except Exception as e:
         logger.error(f"Error accepting file: {str(e)}")
