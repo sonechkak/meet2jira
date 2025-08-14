@@ -27,16 +27,10 @@ jobs:
         key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
 
     - name: Run pre-commit hooks
-      run: pre-commit run --all-files
-
-    - name: Commit changes
-      if: failure()  # Only commit if pre-commit made changes
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add .
-        git diff --staged --quiet || git commit -m "Auto-fix code formatting [skip ci]"
-        git push
+        pre-commit run --all-files || true
+        git add . || true
+        pre-commit run --all-files
 
   build:
     runs-on: ubuntu-latest

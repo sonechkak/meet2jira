@@ -1,6 +1,6 @@
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from select import select
 
 import bcrypt
@@ -76,8 +76,8 @@ class AuthService:
                 email=user_data.email,
                 full_name=user_data.full_name,
                 timezone=user_data.timezone,
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow(),
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
             )
 
             session.add(user)
@@ -111,7 +111,7 @@ class AuthService:
             if user_data.is_active is not None:
                 user.is_active = user_data.is_active
 
-            user.updated_at = datetime.utcnow()
+            user.updated_at = datetime.now(timezone.utc)
 
             await session.commit()
             await session.refresh(user)

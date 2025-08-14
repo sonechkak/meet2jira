@@ -84,7 +84,7 @@ async def accept_file(
                 tasks_text=request.tasks_text,
                 project_key=request.project_key,
                 epic_key=request.epic_key,
-                jira_result=jira_result.dict(),
+                jira_result=jira_result.model_dump(),
             )
         return AcceptResultResponseSchema(
             status="success",
@@ -94,7 +94,7 @@ async def accept_file(
             tasks_text=request.tasks_text,
             project_key=request.project_key,
             epic_key=request.epic_key,
-            jira_result=jira_result.dict(),
+            jira_result=jira_result.model_dump(),
         )
 
     except Exception as e:

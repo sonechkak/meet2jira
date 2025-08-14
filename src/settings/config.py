@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from dotenv import load_dotenv
-from pydantic import Field, model_validator
+from pydantic import ConfigDict, Field, model_validator
 from pydantic_settings import BaseSettings
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -104,15 +104,12 @@ class Settings(BaseSettings):
         """Check if running in development environment."""
         return str(self.environment).lower() == "development"
 
-    class Config:
-        """Pydantic configuration."""
-
-        env_file = ".env.local"
-        env_file_encoding = "utf-8"
-        case_sensitive = True
-        use_enum_values = True
-        extra = "ignore"
-        env_prefix = ""
+    model_config = ConfigDict(
+        env_file=env_path,
+        env_file_encoding="utf-8",
+        validate_assignment=True,
+        extra="forbid",
+    )
 
 
 # Global settings instance
