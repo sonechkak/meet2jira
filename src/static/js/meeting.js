@@ -48,20 +48,20 @@ function displayMeetingsList() {
         let statusText = '';
 
         switch(meeting.status) {
-            case 'completed':
-                statusClass = 'status-processed';
+            case 'processed':
+                statusClass = 'processed';
                 statusText = 'Завершено';
                 break;
-            case 'processing':
-                statusClass = 'status-pending';
+            case 'pending':
+                statusClass = 'pending';
                 statusText = 'Обрабатывается';
                 break;
             case 'scheduled':
-                statusClass = 'status-pending';
+                statusClass = 'scheduled';
                 statusText = 'Запланировано';
                 break;
             case 'failed':
-                statusClass = 'status-failed';
+                statusClass = 'failed';
                 statusText = 'Ошибка';
                 break;
             default:
