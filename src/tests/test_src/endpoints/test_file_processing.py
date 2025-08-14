@@ -12,7 +12,7 @@ def test_process_document_success(client, sample_file, monkeypatch):
         status="success",
         error=False,
         document_name="test_file.txt",
-        summary={"tasks": 5, "processed": True}
+        summary={"tasks": 5, "processed": True},
     )
 
     async def mock_process_document(file):
@@ -21,10 +21,7 @@ def test_process_document_success(client, sample_file, monkeypatch):
     monkeypatch.setattr("src.pipeline.pipeline.process_document", mock_process_document)
 
     # Act
-    response = client.post(
-        "/file/process",
-        files={"file": sample_file}
-    )
+    response = client.post("/file/process", files={"file": sample_file})
 
     # Assert
     assert response.status_code == 200
@@ -50,7 +47,7 @@ def test_process_document_pdf_file(client, sample_pdf_file, monkeypatch):
         status="success",
         error=False,
         document_name="test_document.pdf",
-        summary={"pages": 1, "text_extracted": True}
+        summary={"pages": 1, "text_extracted": True},
     )
 
     async def mock_process_document(file):
@@ -59,10 +56,7 @@ def test_process_document_pdf_file(client, sample_pdf_file, monkeypatch):
     monkeypatch.setattr("src.pipeline.pipeline.process_document", mock_process_document)
 
     # Act
-    response = client.post(
-        "/file/process",
-        files={"file": sample_pdf_file}
-    )
+    response = client.post("/file/process", files={"file": sample_pdf_file})
 
     # Assert
     assert response.status_code == 200
@@ -75,10 +69,7 @@ def test_process_document_pdf_file(client, sample_pdf_file, monkeypatch):
 def test_reject_processing_empty_data(client):
     """Тест отклонения с пустыми данными."""
     # Act
-    response = client.post(
-        "/file/reject",
-        json={}
-    )
+    response = client.post("/file/reject", json={})
 
     # Assert
     assert response.status_code == 422
@@ -87,10 +78,7 @@ def test_reject_processing_empty_data(client):
 def test_reject_processing_missing_result_id(client):
     """Тест отклонения без result_id."""
     # Act
-    response = client.post(
-        "/file/reject",
-        json={"reason": "Some reason"}
-    )
+    response = client.post("/file/reject", json={"reason": "Some reason"})
 
     # Assert
     assert response.status_code == 422
@@ -116,7 +104,10 @@ def test_accept_result_success(client, valid_accept_request):
     else:
         assert "error" in jira_result
         assert jira_result["error"] is True
-        print("Jira result error:", jira_result.get("error_message", "No error message provided"))
+        print(
+            "Jira result error:",
+            jira_result.get("error_message", "No error message provided"),
+        )
         print("Jira result:", jira_result)
 
 
@@ -127,13 +118,12 @@ def test_accept_result_jira_no_tasks_created(client, valid_accept_request, monke
     def mock_get_jira_service():
         return MockJiraService(created_tasks=[])
 
-    monkeypatch.setattr("src.services.jira_service.get_jira_service", mock_get_jira_service)
+    monkeypatch.setattr(
+        "src.services.jira_service.get_jira_service", mock_get_jira_service
+    )
 
     # Act
-    response = client.post(
-        "/file/accept",
-        json=valid_accept_request
-    )
+    response = client.post("/file/accept", json=valid_accept_request)
 
     # Assert
     assert response.status_code == 200
@@ -143,7 +133,9 @@ def test_accept_result_jira_no_tasks_created(client, valid_accept_request, monke
     assert "Не удалось создать задачи в Jira" in response_data["error_message"]
 
 
-def test_accept_result_jira_service_exception(client, valid_accept_request, monkeypatch):
+def test_accept_result_jira_service_exception(
+    client, valid_accept_request, monkeypatch
+):
     """Тест обработки исключения в accept endpoint."""
     # Arrange - ИСПРАВЛЕНО: правильная инициализация mock_jira_result
     mock_jira_result = MockJiraResult(failed_tasks=["Task 1", "Task 2"])
@@ -151,13 +143,12 @@ def test_accept_result_jira_service_exception(client, valid_accept_request, monk
     def mock_get_jira_service():
         return MockJiraService(should_raise=True)
 
-    monkeypatch.setattr("src.services.jira_service.get_jira_service", mock_get_jira_service)
+    monkeypatch.setattr(
+        "src.services.jira_service.get_jira_service", mock_get_jira_service
+    )
 
     # Act
-    response = client.post(
-        "/file/accept",
-        json=valid_accept_request
-    )
+    response = client.post("/file/accept", json=valid_accept_request)
 
     # Assert
     assert response.status_code == 200
@@ -169,10 +160,7 @@ def test_accept_result_jira_service_exception(client, valid_accept_request, monk
 def test_accept_result_invalid_data(client):
     """Тест accept endpoint с невалидными данными."""
     # Act
-    response = client.post(
-        "/file/accept",
-        json={}
-    )
+    response = client.post("/file/accept", json={})
 
     # Assert
     assert response.status_code == 422
@@ -181,10 +169,7 @@ def test_accept_result_invalid_data(client):
 def test_accept_result_missing_required_fields(client):
     """Тест accept endpoint с отсутствующими обязательными полями."""
     # Act
-    response = client.post(
-        "/file/accept",
-        json={"result_id": "123"}
-    )
+    response = client.post("/file/accept", json={"result_id": "123"})
 
     # Assert
     assert response.status_code == 422
@@ -201,14 +186,16 @@ def test_webhook_file_upload_event(client, webhook_file_upload_data, monkeypatch
     def mock_get_jira_service():
         return MockJiraService()
 
-    monkeypatch.setattr("src.handlers.webhooks.handle_file_upload.handle_file_upload", mock_handle_file_upload)
-    monkeypatch.setattr("src.services.jira_service.get_jira_service", mock_get_jira_service)
+    monkeypatch.setattr(
+        "src.handlers.webhooks.handle_file_upload.handle_file_upload",
+        mock_handle_file_upload,
+    )
+    monkeypatch.setattr(
+        "src.services.jira_service.get_jira_service", mock_get_jira_service
+    )
 
     # Act
-    response = client.post(
-        "/file/webhook",
-        json=webhook_file_upload_data
-    )
+    response = client.post("/file/webhook", json=webhook_file_upload_data)
 
     # Assert
     assert response.status_code == 200
@@ -221,14 +208,13 @@ def test_webhook_file_ready_event(client, webhook_file_ready_data, monkeypatch):
     async def mock_handle_file_ready_event(data):
         return {"status": "processed", "file_id": data.get("file_id")}
 
-    monkeypatch.setattr("src.handlers.webhooks.handle_file_ready_event.handle_file_ready_event",
-                        mock_handle_file_ready_event)
+    monkeypatch.setattr(
+        "src.handlers.webhooks.handle_file_ready_event.handle_file_ready_event",
+        mock_handle_file_ready_event,
+    )
 
     # Act
-    response = client.post(
-        "/file/webhook",
-        json=webhook_file_ready_data
-    )
+    response = client.post("/file/webhook", json=webhook_file_ready_data)
 
     # Assert
     assert response.status_code == 200
@@ -237,16 +223,10 @@ def test_webhook_file_ready_event(client, webhook_file_ready_data, monkeypatch):
 def test_webhook_unknown_event(client):
     """Тест webhook с неизвестным событием."""
     # Arrange
-    webhook_data = {
-        "event": "unknown_event",
-        "data": "some data"
-    }
+    webhook_data = {"event": "unknown_event", "data": "some data"}
 
     # Act
-    response = client.post(
-        "/file/webhook",
-        json=webhook_data
-    )
+    response = client.post("/file/webhook", json=webhook_data)
 
     # Assert
     assert response.status_code == 200
@@ -258,15 +238,10 @@ def test_webhook_unknown_event(client):
 def test_webhook_no_event(client):
     """Тест webhook без указания события."""
     # Arrange
-    webhook_data = {
-        "data": "some data"
-    }
+    webhook_data = {"data": "some data"}
 
     # Act
-    response = client.post(
-        "/file/webhook",
-        json=webhook_data
-    )
+    response = client.post("/file/webhook", json=webhook_data)
 
     # Assert
     assert response.status_code == 200
@@ -278,16 +253,10 @@ def test_webhook_no_event(client):
 def test_webhook_empty_event(client):
     """Тест webhook с пустым событием."""
     # Arrange
-    webhook_data = {
-        "event": "",
-        "data": "some data"
-    }
+    webhook_data = {"event": "", "data": "some data"}
 
     # Act
-    response = client.post(
-        "/file/webhook",
-        json=webhook_data
-    )
+    response = client.post("/file/webhook", json=webhook_data)
 
     # Assert
     assert response.status_code == 200
@@ -301,7 +270,7 @@ def test_webhook_invalid_json(client):
     response = client.post(
         "/file/webhook",
         data="invalid json data",
-        headers={"content-type": "application/json"}
+        headers={"content-type": "application/json"},
     )
 
     # Assert

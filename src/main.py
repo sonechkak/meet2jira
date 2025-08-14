@@ -84,8 +84,8 @@ app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
     description="API for Meet2Jira, a tool to integrate meeting notes with Jira issues.",
-    docs_url=settings.docs_url if settings.is_development else None,
-    redoc_url=settings.redoc_url if settings.is_development else None,
+    docs_url=settings.docs_url,
+    redoc_url=settings.redoc_url,
     lifespan=lifespan,
 )
 
@@ -111,6 +111,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @app.get("/", summary="Root Endpoint", tags=["Root"])
 async def root() -> RootResponseSchema:
+    """Root endpoint that returns basic information about the API."""
     db_status = await create_db_and_tables()
     return RootResponseSchema(
         status="success",

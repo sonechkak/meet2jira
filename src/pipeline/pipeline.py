@@ -76,7 +76,9 @@ async def process_document(
             )
 
         # 2. Генерируем промпт для LLM
-        logger.info(f"Генерация промпта для модели {model} с текстом длиной {len(text)} символов")
+        logger.info(
+            f"Генерация промпта для модели {model} с текстом длиной {len(text)} символов"
+        )
         prompt_generator = PromptGenerator(text=text)
         prompt = prompt_generator.run()
 

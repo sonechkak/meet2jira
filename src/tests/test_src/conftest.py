@@ -5,7 +5,7 @@ from io import BytesIO
 import pytest
 from fastapi.testclient import TestClient
 
-project_root = os.path.join(os.path.dirname(__file__), '..', '..')
+project_root = os.path.join(os.path.dirname(__file__), "..", "..")
 sys.path.insert(0, project_root)
 
 from src.main import app
@@ -38,17 +38,14 @@ def valid_accept_request():
         "result_id": "result_12345",
         "tasks_text": "### TASK-001: Разработать API\n### TASK-002: Написать тесты\n### TASK-003: Создать документацию",
         "project_key": "MEET2JIRA",
-        "epic_key": "MEET2JIRA-100"
+        "epic_key": "MEET2JIRA-100",
     }
 
 
 @pytest.fixture
 def valid_reject_request():
     """Валидные данные для reject endpoint."""
-    return {
-        "result_id": "result_12345",
-        "reason": "Неверная обработка документа"
-    }
+    return {"result_id": "result_12345", "reason": "Неверная обработка документа"}
 
 
 @pytest.fixture
@@ -60,7 +57,7 @@ def webhook_file_upload_data():
         "file_name": "important_document.pdf",
         "file_size": 1024000,
         "upload_time": "2024-01-15T10:30:00Z",
-        "user_id": "user_456"
+        "user_id": "user_456",
     }
 
 
@@ -78,7 +75,7 @@ def valid_accept_request():
         "result_id": "result_12345",
         "tasks_text": "Задача 1: Разработать API\nЗадача 2: Написать тесты\nЗадача 3: Создать документацию",
         "project_key": "MEET2JIRA",
-        "epic_key": "MYPROJ-100"
+        "epic_key": "MYPROJ-100",
     }
 
 
@@ -90,7 +87,7 @@ def webhook_file_ready_data():
         "file_id": "upload_123",
         "processing_status": "completed",
         "result_url": "https://example.com/results/upload_123",
-        "processing_time": "2024-01-15T10:35:00Z"
+        "processing_time": "2024-01-15T10:35:00Z",
     }
 
 
@@ -106,7 +103,7 @@ class MockJiraResult:
             "created_tasks": self.created_tasks,
             "failed_tasks": self.failed_tasks,
             "success_count": len(self.created_tasks),
-            "error_count": len(self.failed_tasks)
+            "error_count": len(self.failed_tasks),
         }
 
 
@@ -120,7 +117,9 @@ class MockJiraService:
         if created_tasks is not None:
             self.created_tasks = created_tasks
         else:
-            self.created_tasks = ["MYPROJ-101", "MYPROJ-102", "MYPROJ-103"] if should_succeed else []
+            self.created_tasks = (
+                ["MYPROJ-101", "MYPROJ-102", "MYPROJ-103"] if should_succeed else []
+            )
 
     async def process_tasks_to_jira(self, request):
         if self.should_raise:

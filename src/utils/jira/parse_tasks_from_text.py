@@ -53,6 +53,7 @@ def parse_tasks_from_text(text: str) -> List[ParsedTask]:
             logger.info(f"Успешно распарсено {len(tasks)} задач")
             return tasks
 
+
 def clean_task_content(content: str) -> str:
     """Очистка контента задачи от лишней информации."""
 
@@ -60,14 +61,14 @@ def clean_task_content(content: str) -> str:
     content = content.strip()
 
     # Если контент содержит **Приоритет:** или другие метки, берем только первую строку
-    lines = content.split('\n')
+    lines = content.split("\n")
     if lines:
         first_line = lines[0].strip()
 
         # Убираем **Приоритет:** и подобные метки из первой строки
-        title = re.sub(r'\*\*[^*]+\*\*.*', '', first_line).strip()
+        title = re.sub(r"\*\*[^*]+\*\*.*", "", first_line).strip()
 
         if title:
             return title
 
-    return content[:100].replace('\n', ' ').strip()
+    return content[:100].replace("\n", " ").strip()

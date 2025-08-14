@@ -45,10 +45,11 @@ def jira_client():
     Фикстура для использования клиента Jira в тестах.
     """
     from src.services.jira_service import JiraService
+
     jira_service = JiraService(
         server_url=os.getenv("JIRA_API_URL"),
         username=os.getenv("JIRA_API_USER"),
-        api_token=os.getenv("JIRA_API_TOKEN")
+        api_token=os.getenv("JIRA_API_TOKEN"),
     )
     jira_client = jira_service._get_jira_client()
     yield jira_client

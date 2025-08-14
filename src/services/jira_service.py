@@ -10,7 +10,7 @@ from src.repositories.meeting import MeetingRepository
 from src.schemas.jira.jira_schemas import (
     CreateJiraTaskResponse,
     JiraTaskRequest,
-    ProcessTaskResponseSchema
+    ProcessTaskResponseSchema,
 )
 from src.settings.config import settings
 from src.utils.jira.parse_tasks_from_text import parse_tasks_from_text
@@ -25,9 +25,11 @@ class JiraService:
     def __init__(self, server_url: str, username: str, api_token: str):
         """Инициализация сервиса Jira."""
         self.options = {
-            'rest_api_version': '3',
+            "rest_api_version": "3",
         }
-        self.jira = JIRA(server=server_url, basic_auth=(username, api_token), options=self.options)
+        self.jira = JIRA(
+            server=server_url, basic_auth=(username, api_token), options=self.options
+        )
         self.server_url = server_url
         self.meeting_repository = MeetingRepository("meetings")
 
@@ -40,16 +42,8 @@ class JiraService:
             "type": "doc",
             "version": 1,
             "content": [
-                {
-                    "type": "paragraph",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": text
-                        }
-                    ]
-                }
-            ]
+                {"type": "paragraph", "content": [{"type": "text", "text": text}]}
+            ],
         }
 
     def get_project_config(self, project_key: str) -> dict:
@@ -57,10 +51,7 @@ class JiraService:
 
         # Маппинг проектов к их конфигурации
         project_configs = {
-            'MEET2JIRA': {
-                'project_id': '10066',
-                'task_type_id': '10037'
-            }
+            "MEET2JIRA": {"project_id": "10066", "task_type_id": "10037"}
         }
 
         if project_key not in project_configs:
@@ -121,17 +112,82 @@ class JiraService:
         try:
             issue = self.jira.issue(epic_key)
             # Проверяем, что это действительно эпик
-            if issue.fields.issuetype.name.lower() in ['epic', 'эпик']:
+            if issue.fields.issuetype.name.lower() in ["epic", "эпик"]:
                 return True
             else:
-                logger.warning(f"Задача {epic_key} существует, но это не эпик (тип: {issue.fields.issuetype.name})")
+                logger.warning(
+                    f"Задача {epic_key} существует, но это не эпик (тип: {issue.fields.issuetype.name})"
+                )
                 return False
         except Exception as e:
             logger.error(f"Эпик {epic_key} не найден: {str(e)}")
             return False
 
+    def create_adf_description(self, text: str) -> dict:
+        """Создать описание в формате Atlassian Document Format (ADF)."""
+        if not text:
+            return {"type": "doc", "version": 1, "content": []}
+
+        # Split text into paragraphs
+        paragraphs = text.split("\n\n")
+        content = []
+
+        for paragraph in paragraphs:
+            if not paragraph.strip():
+                continue
+
+            # Handle bullet lists
+            if paragraph.startswith("*"):
+                # Create a bullet list
+                list_items = []
+                for line in paragraph.split("\n"):
+                    line = line.strip()
+                    if line.startswith("* "):
+                        list_items.append(
+                            {
+                                "type": "listItem",
+                                "content": [
+                                    {
+                                        "type": "paragraph",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": line[2:],  # Remove "* "
+                                            }
+                                        ],
+                                    }
+                                ],
+                            }
+                        )
+
+                if list_items:
+                    content.append({"type": "bulletList", "content": list_items})
+            else:
+                # Handle regular paragraphs with potential bold text
+                paragraph_content = []
+
+                # Simple bold text handling for *text*
+                parts = paragraph.split("*")
+                for i, part in enumerate(parts):
+                    if part:
+                        if i % 2 == 1:  # Odd indices are bold text
+                            paragraph_content.append(
+                                {
+                                    "type": "text",
+                                    "text": part,
+                                    "marks": [{"type": "strong"}],
+                                }
+                            )
+                        else:  # Even indices are regular text
+                            paragraph_content.append({"type": "text", "text": part})
+
+                if paragraph_content:
+                    content.append({"type": "paragraph", "content": paragraph_content})
+
+        return {"type": "doc", "version": 1, "content": content}
+
     def create_jira_task(
-            self, task: ParsedTask, project_key: str, epic_key: Optional[str] = None
+        self, task: ParsedTask, project_key: str, epic_key: Optional[str] = None
     ) -> CreateJiraTaskResponse:
         """Создание задачи в Jira."""
         try:
@@ -145,7 +201,7 @@ class JiraService:
             ]
 
             # Добавляем описание если есть
-            if hasattr(task, 'description') and task.description:
+            if hasattr(task, "description") and task.description:
                 description_parts.extend([f"*Описание:* {task.description}", ""])
 
             if task.acceptance_criteria:
@@ -161,14 +217,16 @@ class JiraService:
 
             description = "\n".join(description_parts)
 
+            description_adf = self.create_adf_description(description)
+
             project_config = self.get_project_config(project_key)
 
             # Данные для создания задачи
             issue_dict = {
-                "project": {"id": project_config['project_id']},
+                "project": {"id": project_config["project_id"]},
                 "summary": f"{task.task_id}: {task.title}",
-                "description": description,
-                "issuetype": {"id": project_config['task_type_id']},
+                "description": description_adf,
+                "issuetype": {"id": project_config["task_type_id"]},
             }
             logger.debug(f"Данные для создания задачи: {issue_dict}")
 
@@ -188,10 +246,7 @@ class JiraService:
         except Exception as e:
             error_msg = f"Ошибка при создании задачи '{task.title}': {str(e)}"
             logger.error(error_msg, exc_info=True)
-            return CreateJiraTaskResponse(
-                status="error",
-                error=error_msg
-            )
+            return CreateJiraTaskResponse(status="error", error=error_msg)
 
     def create_minimal_task(self, task_summary: str, project_key: str) -> str:
         """Создать минимальную задачу без описания (для отладки)."""
@@ -200,9 +255,9 @@ class JiraService:
 
             # Только обязательные поля
             issue_dict = {
-                "project": {"id": project_config['project_id']},
+                "project": {"id": project_config["project_id"]},
                 "summary": task_summary,
-                "issuetype": {"id": project_config['task_type_id']}
+                "issuetype": {"id": project_config["task_type_id"]},
             }
 
             logger.info(f"Создаем минимальную задачу: {issue_dict}")
@@ -213,11 +268,13 @@ class JiraService:
             return new_issue.key
 
         except Exception as e:
-            logger.error(f"Ошибка создания минимальной задачи '{task_summary}': {str(e)}")
+            logger.error(
+                f"Ошибка создания минимальной задачи '{task_summary}': {str(e)}"
+            )
             raise
 
     async def process_tasks_to_jira(
-            self, request: JiraTaskRequest
+        self, request: JiraTaskRequest
     ) -> ProcessTaskResponseSchema:
         """Основной метод для обработки текста и создания задач в Jira."""
         try:
@@ -247,7 +304,9 @@ class JiraService:
             logger.info(f"Обрабатываем {len(tasks_to_process)} задач")
 
             for i, task in enumerate(tasks_to_process, 1):
-                logger.info(f"Обработка задачи {i}/{len(tasks_to_process)}: {task.task_id}")
+                logger.info(
+                    f"Обработка задачи {i}/{len(tasks_to_process)}: {task.task_id}"
+                )
 
                 result = self.create_jira_task(
                     task=task,
@@ -261,7 +320,7 @@ class JiraService:
                         "key": result.task_id,
                         "title": result.title,
                         "url": result.url,
-                        "summary": f"{result.task_id}: {result.title}"  # Для совместимости
+                        "summary": f"{result.task_id}: {result.title}",  # Для совместимости
                     }
                     created_tasks.append(task_info)
                     logger.info(f"Задача успешно создана: {result.task_id}")
@@ -269,23 +328,31 @@ class JiraService:
                     error_info = {
                         "task_id": task.task_id,
                         "task_title": task.title,
-                        "error": result.error
+                        "error": result.error,
                     }
                     errors.append(error_info)
-                    logger.error(f"Ошибка создания задачи {task.task_id}: {result.error}")
+                    logger.error(
+                        f"Ошибка создания задачи {task.task_id}: {result.error}"
+                    )
 
             # Определяем общий статус
             if created_tasks and not errors:
                 status = "success"
-                error_message = f"Все {len(created_tasks)} задач успешно созданы в Jira."
+                error_message = (
+                    f"Все {len(created_tasks)} задач успешно созданы в Jira."
+                )
             elif created_tasks and errors:
                 status = "partial_success"
-                error_message = f"Создано {len(created_tasks)} задач, {len(errors)} ошибок."
+                error_message = (
+                    f"Создано {len(created_tasks)} задач, {len(errors)} ошибок."
+                )
             else:
                 status = "error"
                 error_message = "Ни одна задача не была создана в Jira."
 
-            logger.info(f"Обработка завершена. Статус: {status}. Создано: {len(created_tasks)}, Ошибок: {len(errors)}")
+            logger.info(
+                f"Обработка завершена. Статус: {status}. Создано: {len(created_tasks)}, Ошибок: {len(errors)}"
+            )
 
             return ProcessTaskResponseSchema(
                 status=status,
@@ -316,7 +383,7 @@ def get_jira_service() -> JiraService:
         logger.error(error_msg)
         raise HTTPException(
             status_code=500,
-            detail="Не настроены переменные окружения для Jira (JIRA_SERVER_URL, JIRA_USERNAME, JIRA_API_TOKEN)"
+            detail="Не настроены переменные окружения для Jira (JIRA_SERVER_URL, JIRA_USERNAME, JIRA_API_TOKEN)",
         )
 
     logger.info(f"Инициализация JiraService для сервера: {server_url}")

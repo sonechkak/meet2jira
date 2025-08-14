@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 @processing_router.post("/process")
 async def upload_and_process_document(
-    file: UploadFile = File(...)
+    file: UploadFile = File(...),
 ) -> ProcessingResponseSchema:
     """Endpoint to process a file."""
     try:

@@ -10,6 +10,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 class MeetingRepositoryError(Exception):
     """Custom exception for MeetingRepository errors."""
+
     logger.debug("Ошибка в MeetingRepository.")
 
 
@@ -41,7 +42,9 @@ class MeetingRepository(BaseRepository):
             return await self.get(meeting_id)
         except Exception as e:
             logger.error(f"Error retrieving meeting with ID {meeting_id}: {str(e)}")
-            raise MeetingRepositoryError(f"Failed to retrieve meeting with ID {meeting_id}")(e)
+            raise MeetingRepositoryError(
+                f"Failed to retrieve meeting with ID {meeting_id}"
+            )(e)
 
     async def update_meeting(self, meeting_id: str, update_data: dict) -> dict:
         """Update an existing meeting record."""

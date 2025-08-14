@@ -2,13 +2,13 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 env_path = BASE_DIR / ".env.local"
 
-load_dotenv(dotenv_path=env_path)
+load_dotenv(dotenv_path=env_path, override=True)
 
 
 class Settings(BaseSettings):
@@ -67,42 +67,28 @@ class Settings(BaseSettings):
     # Redis
     REDIS_URL: str = Field(default="redis://localhost:6379/0", description="Redis URL")
 
-    # JIRA settings
+    # JIRA settings - используем алиасы для правильного маппинга переменных окружения
     JIRA_SERVER_URL: str = Field(
-        default=str(os.getenv("JIRA_API_URL")), description="Jira server URL"
+        alias="JIRA_API_URL", default="", description="Jira server URL"
     )
     JIRA_USERNAME: str = Field(
-        default=str(os.getenv("JIRA_API_USER")), description="Jira username"
+        alias="JIRA_API_USER", default="", description="Jira username"
     )
-    JIRA_API_TOKEN: str = Field(
-        default=str(os.getenv("JIRA_API_TOKEN")), description="Jira API token"
-    )
+    JIRA_API_TOKEN: str = Field(default="", description="Jira API token")
     JIRA_DEFAULT_PROJECT_KEY: str = Field(
-        default=str(os.getenv("JIRA_DEFAULT_PROJECT_KEY")),
-        description="Default Jira project key",
+        default="", description="Default Jira project key"
     )
-    JIRA_EPIC_KEY: str = Field(
-        default=str(os.getenv("JIRA_EPIC_KEY", "EPIC-1")), description="Jira epic key"
-    )
-    JIRA_EPIC_NAME: str = Field(
-        default=str(os.getenv("JIRA_EPIC_NAME", "Epic Name")),
-        description="Name for Jira epic",
-    )
-    JIRA_EPIC_URL: str = Field(
-        default=str(
-            os.getenv(
-                "JIRA_EPIC_URL",
-                f"{JIRA_SERVER_URL}/browse/{os.getenv('JIRA_EPIC_KEY', 'EPIC-1')}",
-            )
-        ),
-        description="URL for Jira epic",
-    )
+    JIRA_EPIC_KEY: str = Field(default="EPIC-1", description="Jira epic key")
+    JIRA_EPIC_NAME: str = Field(default="Epic Name", description="Name for Jira epic")
+    JIRA_EPIC_URL: str = Field(default="", description="URL for Jira epic")
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        # Если URI не задан, строим его автоматически
-        if not self.SQLALCHEMY_DATABASE_URI:
-            self.SQLALCHEMY_DATABASE_URI = "postgresql+asyncpg://meet2jira_user:meet2jira_password@127.0.0.1:5432/meet2jira"
+    @model_validator(mode="after")
+    def validate_jira_settings(self):
+        """Генерируем EPIC_URL если не задан"""
+        if not self.JIRA_EPIC_URL and self.JIRA_SERVER_URL:
+            self.JIRA_EPIC_URL = f"{self.JIRA_SERVER_URL}/browse/{self.JIRA_EPIC_KEY}"
+
+        return self
 
     @property
     def allowed_extensions(self) -> list[str]:
@@ -119,13 +105,15 @@ class Settings(BaseSettings):
         """Check if running in development environment."""
         return str(self.environment).lower() == "development"
 
-    model_config = {
-        "env_file": ".env.local" if environment == "local" else ".env",
-        "env_file_encoding": "utf-8",
-        "case_sensitive": False,
-        "extra": "ignore",
-        "validate_assignment": False,
-    }
+    class Config:
+        """Pydantic configuration."""
+
+        env_file = ".env.local"
+        env_file_encoding = "utf-8"
+        case_sensitive = True
+        use_enum_values = True
+        extra = "ignore"
+        env_prefix = ""
 
 
 # Global settings instance
