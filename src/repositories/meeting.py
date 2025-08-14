@@ -3,7 +3,6 @@ import logging
 from src.models.meeting import Meeting
 from src.repositories.base import BaseRepository
 
-
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 

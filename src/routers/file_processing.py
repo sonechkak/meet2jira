@@ -1,7 +1,7 @@
 import logging
 
 import jira
-from fastapi import APIRouter, Depends, File, Request, UploadFile, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 
 from src.database import AsyncSessionLocal, get_db_session
 from src.handlers.webhooks.handle_file_ready_event import handle_file_ready_event

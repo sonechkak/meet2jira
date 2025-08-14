@@ -1,6 +1,5 @@
 import logging
 import re
-from typing import List
 
 from src.models.parsed_task import ParsedTask
 from src.utils.jira.parse_single_task import parse_single_task
@@ -9,7 +8,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-def parse_tasks_from_text(text: str) -> List[ParsedTask]:
+def parse_tasks_from_text(text: str) -> list[ParsedTask]:
     """Parse multiple tasks from a text string."""
 
     if not text or not text.strip():

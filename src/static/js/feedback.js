@@ -320,7 +320,7 @@ const FeedbackManager = {
             <div class="jira-error">
                 <h4>❌ Ошибки при создании задач (${errors.length})</h4>
                 <ul class="error-list">
-                    ${errors.map((error, index) => 
+                    ${errors.map((error, index) =>
                         `<li><strong>${index + 1}.</strong> ${this.escapeHtml(String(error))}</li>`
                     ).join('')}
                 </ul>

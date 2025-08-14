@@ -2,7 +2,6 @@ import logging
 import re
 from datetime import datetime
 from select import select
-from typing import Optional
 
 import bcrypt
 
@@ -22,7 +21,7 @@ class AuthService:
 
     async def get_user_by_id(
         self, session: AsyncSessionLocal, user_id: str
-    ) -> Optional[User]:
+    ) -> User | None:
         """Retrieve a user by their ID."""
         if not user_id:
             raise ValueError("User ID is required to get the user.")
@@ -30,7 +29,7 @@ class AuthService:
 
     async def get_user_by_username(
         self, session: AsyncSessionLocal, username: str
-    ) -> Optional[User]:
+    ) -> User | None:
         """Retrieve a user by their username."""
         if not username:
             raise ValueError("Username is required to get the user.")
@@ -42,7 +41,7 @@ class AuthService:
 
     async def get_user_by_email(
         self, session: AsyncSessionLocal, email: str
-    ) -> Optional[User]:
+    ) -> User | None:
         """Get user by email."""
         try:
             result = await session.execute(select(User).where(User.email == email))
@@ -52,7 +51,7 @@ class AuthService:
 
     async def create_user(
         self, session: AsyncSessionLocal, user_data: UserCreateSchema
-    ) -> Optional[User]:
+    ) -> User | None:
         """Create a new user."""
         try:
             # Check if username or email already exists
@@ -95,7 +94,7 @@ class AuthService:
 
     async def update_user(
         self, session: AsyncSessionLocal, user_id: int, user_data: UserUpdateSchema
-    ) -> Optional[User]:
+    ) -> User | None:
         """Update user information."""
         try:
             user = await self.get_user_by_id(session, user_id)
@@ -125,7 +124,7 @@ class AuthService:
             await session.rollback()
             return None
 
-    async def authenticate_user(self, identifier: str) -> Optional[User]:
+    async def authenticate_user(self, identifier: str) -> User | None:
         """Authenticate user by identifier."""
         try:
             user = None
@@ -158,8 +157,8 @@ class AuthService:
         identifier: str,
         password: str,
         remember_me: bool,
-        captcha: Optional[str] = None,
-    ) -> Optional[User]:
+        captcha: str | None = None,
+    ) -> User | None:
         """Login the user with provided credentials."""
         if not identifier or not password:
             raise ValueError("Логин и пароль обязательны для входа")

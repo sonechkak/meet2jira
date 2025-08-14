@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import List
 
 
 @dataclass
@@ -10,5 +9,5 @@ class ParsedTask:
     # assignee: str
     time_estimate: str
     description: str
-    acceptance_criteria: List[str]
-    dependencies: List[str]
+    acceptance_criteria: list[str]
+    dependencies: list[str]

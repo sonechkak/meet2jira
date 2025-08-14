@@ -1,6 +1,6 @@
 import os
 
-from src.services.jira_service import get_jira_service, JiraService
+from src.services.jira_service import JiraService, get_jira_service
 
 
 def test_connection_to_jira(jira_client):

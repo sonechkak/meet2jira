@@ -1,6 +1,5 @@
 from operator import or_
 from select import select
-from typing import Optional
 
 from src.database import AsyncSessionLocal
 from src.models.user import User
@@ -11,7 +10,6 @@ from src.schemas.auth.user import UserCreateSchema, UserUpdateSchema
 class AuthRepositoryError(Exception):
     """Base class for authentication repository errors."""
 
-    pass
 
 
 class AuthRepository(BaseRepository[User, UserCreateSchema, UserUpdateSchema]):
@@ -20,7 +18,7 @@ class AuthRepository(BaseRepository[User, UserCreateSchema, UserUpdateSchema]):
     def __init__(self, db: AsyncSessionLocal):
         super().__init__(User, db)
 
-    async def get_user_by_username(self, username: str) -> Optional[User]:
+    async def get_user_by_username(self, username: str) -> User | None:
         """Get a user by username."""
         return await self.get_by_field("username", username.lower())
 
@@ -28,7 +26,7 @@ class AuthRepository(BaseRepository[User, UserCreateSchema, UserUpdateSchema]):
         """Get a user by email."""
         return await self.get_by_field("email", email.lower())
 
-    async def get_user_by_identifier(self, identifier: str) -> Optional[User]:
+    async def get_user_by_identifier(self, identifier: str) -> User | None:
         """Get user by username or email."""
         query = select(User).where(
             or_(User.username == identifier.lower(), User.email == identifier.lower())
@@ -36,7 +34,7 @@ class AuthRepository(BaseRepository[User, UserCreateSchema, UserUpdateSchema]):
         result = await self.db.execute(query)
         return result.scalars().first()
 
-    async def verify_user(self, user_id: int) -> Optional[User]:
+    async def verify_user(self, user_id: int) -> User | None:
         """Verify user by ID."""
         user = await self.get(user_id)
         if user:

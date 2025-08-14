@@ -1,6 +1,5 @@
 import logging
 import re
-from typing import Optional
 
 from src.models.parsed_task import ParsedTask
 
@@ -8,7 +7,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def parse_single_task(task_prefix: str, block: str) -> Optional[ParsedTask]:
+def parse_single_task(task_prefix: str, block: str) -> ParsedTask | None:
     """Parse a single task from a text block."""
 
     try:

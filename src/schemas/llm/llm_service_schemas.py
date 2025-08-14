@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -8,5 +8,5 @@ class LLMServiceResponseSchema(BaseModel):
     error: bool = False
     error_message: str = None
     response_text: str = ""
-    response_data: Dict[str, Any] = {}
+    response_data: dict[str, Any] = {}
     model_name: str = "model_name"

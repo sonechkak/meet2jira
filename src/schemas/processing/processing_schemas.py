@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -7,10 +7,10 @@ from pydantic import BaseModel, Field
 class ProcessingResponseSchema(BaseModel):
     status: str
     error: bool
-    error_message: Optional[str] = None
+    error_message: str | None = None
     model: str = "default_model"
     document_name: str
-    summary: Dict[str, Any] = Field(default_factory=dict)
+    summary: dict[str, Any] = Field(default_factory=dict)
 
 
 class RejectProcessingResponseSchema(BaseModel):

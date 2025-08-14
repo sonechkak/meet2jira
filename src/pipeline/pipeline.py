@@ -6,15 +6,15 @@ import tempfile
 
 from fastapi import File
 
-from src.schemas.processing.processing_schemas import ProcessingResponseSchema
-from src.services.llm_service import LlmService
-from src.tools.prompt_generator import PromptGenerator
-from src.utils.files.text.extract_text_from_file import extract_text_from_file
 from src.database import AsyncSessionLocal, get_db_session
-
 from src.repositories.meeting import MeetingRepository
 from src.schemas.model.meeting import MeetingCreateSchema
+from src.schemas.processing.processing_schemas import ProcessingResponseSchema
+from src.services.llm_service import LlmService
 from src.services.meeting_service import MeetingService
+from src.tools.prompt_generator import PromptGenerator
+from src.utils.files.text.extract_text_from_file import extract_text_from_file
+
 from .elements.base import Pipeline
 
 logging.basicConfig(level=logging.DEBUG)

@@ -2,7 +2,7 @@ import pytest
 
 from src.schemas.processing.processing_schemas import ProcessingResponseSchema
 from src.services.jira_service import get_jira_service
-from src.tests.test_src.conftest import MockJiraService, MockJiraResult
+from src.tests.test_src.conftest import MockJiraResult, MockJiraService
 
 
 def test_process_document_success(client, sample_file, monkeypatch):

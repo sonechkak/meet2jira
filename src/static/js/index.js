@@ -253,16 +253,16 @@ const UI = {
                     <div class="document-name">${fileIcon} ${Utils.escapeHtml(result.document_name || 'Документ')}</div>
                     <div class="model-badge">🤖 ${result.model || 'AI Model'}</div>
                 </div>
-                
+
                 <div class="summary-label">Найденные задачи:</div>
                 <div class="summary-content" id="${summaryId}">
                     ${Utils.escapeHtml(summaryContent).replace(/\n/g, '<br>')}
                 </div>
-                
+
                 <div class="jira-placeholder" id="jira-${resultId}" style="display: none;">
                     <!-- Результаты Jira появятся здесь после нажатия "Хороший результат" -->
                 </div>
-                
+
                 <div class="action-buttons">
                     <button class="copy-btn" onclick="Actions.copySummary('${summaryId}')">
                         📋 Копировать задачи
@@ -274,7 +274,7 @@ const UI = {
                         ❌ Плохой результат
                     </button>
                 </div>
-                
+
                 <div class="status-indicator" id="status-${resultId}" style="display: none;"></div>
             </div>
         `;

@@ -1,4 +1,3 @@
-from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -10,27 +9,27 @@ class TaskData(BaseModel):
     assignee: str
     time_estimate: str
     description: str
-    acceptance_criteria: List[str]
-    dependencies: List[str]
+    acceptance_criteria: list[str]
+    dependencies: list[str]
 
 
 class JiraTaskRequest(BaseModel):
     tasks_text: str
     project_key: str = "MEET2JIRA"
-    epic_key: Optional[str] = None
-    options: Optional[Dict[str, str]] = None
+    epic_key: str | None = None
+    options: dict[str, str] | None = None
 
 
 class ProcessTaskResponseSchema(BaseModel):
     status: str = "success"
-    created_tasks: List[Dict[str, str]] = []
+    created_tasks: list[dict[str, str]] = []
     error: bool = False
     error_message: str = ""
 
 
 class CreateJiraTaskResponse(BaseModel):
     status: str = "success"
-    error: Optional[str] = None
-    title: Optional[str] = None
-    task_id: Optional[str] = None
-    url: Optional[str] = None
+    error: str | None = None
+    title: str | None = None
+    task_id: str | None = None
+    url: str | None = None

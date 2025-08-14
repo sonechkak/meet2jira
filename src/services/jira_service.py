@@ -1,6 +1,4 @@
 import logging
-import os
-from typing import Optional
 
 from fastapi import HTTPException
 from jira import JIRA
@@ -68,7 +66,7 @@ class JiraService:
             )
         return self.jira
 
-    def _get_user_account_id(self, display_name: str) -> Optional[str]:
+    def _get_user_account_id(self, display_name: str) -> str | None:
         """Получение account_id пользователя по имени."""
 
         try:
@@ -187,7 +185,7 @@ class JiraService:
         return {"type": "doc", "version": 1, "content": content}
 
     def create_jira_task(
-        self, task: ParsedTask, project_key: str, epic_key: Optional[str] = None
+        self, task: ParsedTask, project_key: str, epic_key: str | None = None
     ) -> CreateJiraTaskResponse:
         """Создание задачи в Jira."""
         try:

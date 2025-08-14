@@ -1,4 +1,3 @@
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -14,8 +13,8 @@ class LoginResponseSchema(BaseModel):
     status: str = "success"
     id: int = None
     username: str = None
-    email: Optional[str] = None
-    full_name: Optional[str] = None
+    email: str | None = None
+    full_name: str | None = None
     is_active: bool = True
     error: bool = False
-    error_message: Optional[str] = None
+    error_message: str | None = None

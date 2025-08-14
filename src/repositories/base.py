@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel
 from sqlalchemy import delete, func, select, update
@@ -16,7 +16,7 @@ UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType], ABC):
     """Base repository class for common repository functionality."""
 
-    def __init__(self, model: Type[ModelType], db: AsyncSessionLocal):
+    def __init__(self, model: type[ModelType], db: AsyncSessionLocal):
         self.model = model
         self.db = db
 
@@ -32,7 +32,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType], ABC
 
     async def get(
         self, id: int, *, load_relationships: bool = False
-    ) -> Optional[ModelType]:
+    ) -> ModelType | None:
         """Get a record by ID."""
         query = select(self.model).where(self.model.id == id)
 
@@ -51,7 +51,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType], ABC
         field_value: Any,
         *,
         load_relationships: bool = False,
-    ) -> Optional[ModelType]:
+    ) -> ModelType | None:
         """Get a record by any field."""
         query = select(self.model).where(getattr(self.model, field_name) == field_value)
 
@@ -70,7 +70,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType], ABC
         skip: int = 0,
         limit: int = 100,
         load_relationships: bool = False,
-    ) -> List[ModelType]:
+    ) -> list[ModelType]:
         """Get multiple records with pagination."""
         query = select(self.model).offset(skip).limit(limit)
 
@@ -87,7 +87,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType], ABC
         self,
         *,
         db_obj: ModelType,
-        obj_in: Union[UpdateSchemaType, Dict[str, Any]],
+        obj_in: UpdateSchemaType | dict[str, Any],
     ) -> ModelType:
         """Update an existing record."""
         if isinstance(obj_in, dict):
@@ -104,7 +104,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType], ABC
         await self.db.refresh(db_obj)
         return db_obj
 
-    async def delete(self, *, id: int) -> Optional[ModelType]:
+    async def delete(self, *, id: int) -> ModelType | None:
         """Delete a record by ID."""
         db_obj = await self.get(id=id)
         if db_obj:
@@ -112,7 +112,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType], ABC
             await self.db.commit()
         return db_obj
 
-    async def remove(self, id: int) -> Optional[ModelType]:
+    async def remove(self, id: int) -> ModelType | None:
         """Remove a record by ID (alias for delete)."""
         return await self.delete(id=id)
 
@@ -127,7 +127,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType], ABC
         db_obj = await self.get(id=id)
         return db_obj is not None
 
-    async def bulk_create(self, *, objs_in: List[CreateSchemaType]) -> List[ModelType]:
+    async def bulk_create(self, *, objs_in: list[CreateSchemaType]) -> list[ModelType]:
         """Create multiple records in bulk."""
         db_objs = []
         for obj_in in objs_in:
@@ -143,7 +143,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType], ABC
 
         return db_objs
 
-    async def bulk_update(self, *, updates: List[Dict[str, Any]]) -> int:
+    async def bulk_update(self, *, updates: list[dict[str, Any]]) -> int:
         """Update multiple records in bulk."""
         updated_count = 0
         for update_data in updates:
@@ -160,7 +160,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType], ABC
         await self.db.commit()
         return updated_count
 
-    async def bulk_delete(self, *, ids: List[int]) -> int:
+    async def bulk_delete(self, *, ids: list[int]) -> int:
         """Delete multiple records in bulk."""
         query = delete(self.model).where(self.model.id.in_(ids))
         result = await self.db.execute(query)
@@ -170,10 +170,10 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType], ABC
     async def get_by_field_list(
         self,
         field_name: str,
-        field_values: List[Any],
+        field_values: list[Any],
         *,
         load_relationships: bool = False,
-    ) -> List[ModelType]:
+    ) -> list[ModelType]:
         """Get records by field values (IN clause)."""
         query = select(self.model).where(
             getattr(self.model, field_name).in_(field_values)

@@ -23,7 +23,7 @@ def extract_text_from_file(file_path: str, content_type: str) -> str:
     match content_type:
         # Text files
         case "text/plain":
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 return f.read()
 
         # Image files
@@ -40,7 +40,7 @@ def extract_text_from_file(file_path: str, content_type: str) -> str:
 
         # Markdown files
         case "text/x-markdown" | "text/markdown":
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 return f.read()
 
         # PDF files
@@ -61,7 +61,7 @@ def extract_text_from_file(file_path: str, content_type: str) -> str:
             return text
 
         case "text/html":
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 return f.read()
 
         # Music files
