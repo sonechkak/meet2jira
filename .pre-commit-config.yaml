@@ -64,12 +64,6 @@ repos:
           name: pytest
           entry: python -m pytest
           language: python
-          additional_dependencies: [
-            pytest,
-            pytest-asyncio,
-            python-dotenv,
-            fastapi
-          ]
           types: [ python ]
           pass_filenames: false
           always_run: true
