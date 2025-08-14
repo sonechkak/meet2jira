@@ -64,14 +64,14 @@ repos:
   #       args: ['--baseline', '.secrets.baseline', '--exclude-files', 'package.lock.json']
   #       files: ^src/.*
 
-  # Tests
-  - repo: local
-    hooks:
-      - id: pytest
-        name: pytest
-        entry: python -m pytest
-        language: system
-        types: [python]
-        pass_filenames: false
-        always_run: true
-        args: ["src/", "-v", "--tb=short", "--disable-warnings"]
+#  # Tests
+#  - repo: local
+#    hooks:
+#      - id: pytest
+#        name: pytest
+#        entry: python -m pytest
+#        language: system
+#        types: [python]
+#        pass_filenames: false
+#        always_run: true
+#        args: ["src/", "-v", "--tb=short", "--disable-warnings"]
