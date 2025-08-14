@@ -653,6 +653,7 @@ dev = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "black" },
     { name = "pytest-asyncio" },
     { name = "pytest-mock" },
     { name = "standard-aifc" },
@@ -696,6 +697,7 @@ provides-extras = ["dev"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "black", specifier = ">=25.1.0" },
     { name = "pytest-asyncio", specifier = ">=1.1.0" },
     { name = "pytest-mock", specifier = ">=3.14.1" },
     { name = "standard-aifc", specifier = ">=3.13.0" },
