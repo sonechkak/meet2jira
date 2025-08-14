@@ -39,25 +39,20 @@ jobs:
         path: ~/.cache/pre-commit
         key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
 
-    - name: Run pre-commit hooks (without pytest)
+    - name: Run pre-commit hooks
       run: pre-commit run --all-files
 
   test:
     runs-on: ubuntu-latest
-    needs: pre-commit  # Запускаем тесты только после успешного pre-commit
+    needs: pre-commit
     steps:
     - uses: actions/checkout@v4
 
     - name: Build Docker image for testing
-      run: docker build . --file Dockerfile --tag meet2jira:test
+      run: docker build . --target development --tag meet2jira:test
 
     - name: Run tests in Docker container
-      run: |
-        docker run --rm \
-          -v $(pwd):/app \
-          -w /app \
-          meet2jira:test \
-          python -m pytest src/tests/ -v --tb=short
+      run: docker run --rm meet2jira:test
 
   build:
     runs-on: ubuntu-latest
@@ -77,5 +72,5 @@ jobs:
     - name: Build production Docker image
       run: |
         TAG=$(echo "${{ steps.meta.outputs.tags }}" | cut -d',' -f1)
-        docker build . --file Dockerfile --tag $TAG
+        docker build . --target production --tag $TAG
         echo "Built production image: $TAG"
