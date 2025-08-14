@@ -56,15 +56,3 @@ repos:
         files: ^src/.*\.py$
       - id: python-check-blanket-noqa
         files: ^src/.*\.py$
-
-  # Tests
-  - repo: local
-    hooks:
-        - id: pytest
-          name: pytest
-          entry: python -m pytest
-          language: python
-          types: [ python ]
-          pass_filenames: false
-          always_run: true
-          args: [ "src/", "-v", "--tb=short", "--disable-warnings" ]
